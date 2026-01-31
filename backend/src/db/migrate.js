@@ -10,23 +10,8 @@ async function migrate() {
     const schemaPath = path.join(__dirname, 'schema.sql');
     const schema = fs.readFileSync(schemaPath, 'utf8');
     
-    // Split into individual statements
-    const statements = schema
-      .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
-    
-    // Execute each statement separately (handles IF NOT EXISTS better)
-    for (const statement of statements) {
-      try {
-        await pool.query(statement);
-      } catch (err) {
-        // Ignore "already exists" errors
-        if (!err.message.includes('already exists')) {
-          throw err;
-        }
-      }
-    }
+    // Execute entire schema at once (handles dollar-quoted functions correctly)
+    await pool.query(schema);
     
     console.log('✅ Migrations completed successfully');
     
@@ -36,6 +21,11 @@ async function migrate() {
     }
   } catch (error) {
     console.error('❌ Migration failed:', error);
+    // If tables already exist, that's fine
+    if (error.message && error.message.includes('already exists')) {
+      console.log('⚠️ Tables already exist (skipping)');
+      return;
+    }
     if (require.main === module) {
       process.exit(1);
     }
