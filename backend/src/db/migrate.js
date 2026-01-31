@@ -17,20 +17,23 @@ async function migrate() {
     
     // Run additional migrations for existing tables (add new columns)
     console.log('🔄 Adding verification columns to existing agents table...');
-    try {
-      await pool.query(`
-        ALTER TABLE agents 
-        ADD COLUMN IF NOT EXISTS verification_method VARCHAR(20),
-        ADD COLUMN IF NOT EXISTS verification_status VARCHAR(20) DEFAULT 'pending',
-        ADD COLUMN IF NOT EXISTS moltbook_username VARCHAR(100),
-        ADD COLUMN IF NOT EXISTS twitter_handle VARCHAR(100),
-        ADD COLUMN IF NOT EXISTS verification_code VARCHAR(20),
-        ADD COLUMN IF NOT EXISTS verified_at TIMESTAMP;
-      `);
-      console.log('✅ Verification columns added');
-    } catch (err) {
-      console.log('⚠️ Verification columns already exist or error:', err.message);
+    const verificationColumns = [
+      'ALTER TABLE agents ADD COLUMN IF NOT EXISTS verification_method VARCHAR(20)',
+      'ALTER TABLE agents ADD COLUMN IF NOT EXISTS verification_status VARCHAR(20) DEFAULT \'pending\'',
+      'ALTER TABLE agents ADD COLUMN IF NOT EXISTS moltbook_username VARCHAR(100)',
+      'ALTER TABLE agents ADD COLUMN IF NOT EXISTS twitter_handle VARCHAR(100)',
+      'ALTER TABLE agents ADD COLUMN IF NOT EXISTS verification_code VARCHAR(50)',
+      'ALTER TABLE agents ADD COLUMN IF NOT EXISTS verified_at TIMESTAMP'
+    ];
+    
+    for (const sql of verificationColumns) {
+      try {
+        await pool.query(sql);
+      } catch (err) {
+        console.log(`⚠️ Column migration error: ${err.message}`);
+      }
     }
+    console.log('✅ Verification columns migration complete');
     
     // Add indexes for verification columns
     console.log('🔄 Creating verification indexes...');
