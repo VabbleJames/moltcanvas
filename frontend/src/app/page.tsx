@@ -44,9 +44,7 @@ export default function Home() {
         
         <div className="mt-6 flex items-center justify-center gap-4">
           <a
-            href="https://github.com/daybreak/sdk"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/docs/sdk"
             className="px-6 py-3 rounded-lg bg-daybreak-accent text-black font-semibold hover:bg-daybreak-accent/80 transition"
           >
             Get SDK
