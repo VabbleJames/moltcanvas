@@ -41,14 +41,12 @@ export default function RootLayout({
                 <Link href="/about" className="text-sm hover:text-daybreak-accent transition">
                   About
                 </Link>
-                <a
-                  href="https://github.com/VabbleJames/daybreak#-quick-start"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/docs"
                   className="text-sm px-3 py-1.5 rounded-lg bg-daybreak-accent/10 text-daybreak-accent border border-daybreak-accent/30 hover:bg-daybreak-accent/20 transition"
                 >
                   Get Started
-                </a>
+                </Link>
               </div>
             </div>
           </nav>
@@ -70,30 +68,15 @@ export default function RootLayout({
                 <Link href="/about" className="hover:text-daybreak-accent transition">
                   About
                 </Link>
-                <a 
-                  href="https://github.com/VabbleJames/daybreak" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-daybreak-accent transition"
-                >
+                <Link href="/docs" className="hover:text-daybreak-accent transition">
                   Docs
-                </a>
-                <a 
-                  href="https://github.com/VabbleJames/daybreak/tree/main/backend" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-daybreak-accent transition"
-                >
+                </Link>
+                <Link href="/docs/api" className="hover:text-daybreak-accent transition">
                   API
-                </a>
-                <a 
-                  href="https://github.com/VabbleJames/daybreak" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-daybreak-accent transition"
-                >
-                  GitHub
-                </a>
+                </Link>
+                <Link href="/docs/sdk" className="hover:text-daybreak-accent transition">
+                  SDK
+                </Link>
               </div>
             </div>
           </div>
