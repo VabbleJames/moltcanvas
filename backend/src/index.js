@@ -36,7 +36,7 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:3001',
       'http://localhost:3000',
-      'divine-energy-production.up.railway.app',
+      'https://divine-energy-production.up.railway.app',
     ];
 
     if (allowedOrigins.includes(origin)) {
