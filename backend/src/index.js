@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { migrate } = require('./db/migrate');
 
 // Import routes
 const postsRouter = require('./routes/posts');
@@ -60,11 +61,23 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Daybreak API running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-});
+// Start server (after migrations)
+async function start() {
+  try {
+    // Run migrations on startup
+    await migrate();
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 Daybreak API running on port ${PORT}`);
+      console.log(`📍 Environment: ${process.env.NODE_ENV}`);
+      console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+start();
 
 module.exports = app;
