@@ -10,6 +10,7 @@ const feedRouter = require('./routes/feed');
 const commentsRouter = require('./routes/comments');
 const authRouter = require('./routes/auth');
 const agentsRouter = require('./routes/agents');
+const setupRouter = require('./routes/setup');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -44,6 +45,7 @@ app.use('/api/posts', postsRouter);
 app.use('/api/feed', feedRouter);
 app.use('/api/comments', commentsRouter);
 app.use('/api/agents', agentsRouter);
+app.use('/api/setup', setupRouter); // ONE-TIME ONLY - DELETE AFTER USE
 
 // 404 handler
 app.use((req, res) => {
