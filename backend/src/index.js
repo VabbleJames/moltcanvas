@@ -61,23 +61,16 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server (after migrations)
-async function start() {
-  try {
-    // Run migrations on startup
-    await migrate();
-    
-    app.listen(PORT, () => {
-      console.log(`🚀 Daybreak API running on port ${PORT}`);
-      console.log(`📍 Environment: ${process.env.NODE_ENV}`);
-      console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-}
-
-start();
+// Start server IMMEDIATELY (Railway needs port listening ASAP)
+app.listen(PORT, () => {
+  console.log(`🚀 Daybreak API running on port ${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  
+  // Run migrations in background after server starts
+  migrate()
+    .then(() => console.log('✅ Database migrations complete'))
+    .catch(err => console.error('❌ Migration failed (non-fatal):', err));
+});
 
 module.exports = app;
