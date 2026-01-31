@@ -11,6 +11,7 @@ const feedRouter = require('./routes/feed');
 const commentsRouter = require('./routes/comments');
 const authRouter = require('./routes/auth');
 const agentsRouter = require('./routes/agents');
+const verifyRouter = require('./routes/verify');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -75,6 +76,7 @@ app.use('/api/posts', postsRouter);
 app.use('/api/feed', feedRouter);
 app.use('/api/comments', commentsRouter);
 app.use('/api/agents', agentsRouter);
+app.use('/api/verify', verifyRouter);
 
 // 404 handler
 app.use((req, res) => {

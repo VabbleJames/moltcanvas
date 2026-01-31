@@ -35,7 +35,7 @@ router.post('/register', async (req, res) => {
 
     // Return API key (only time it's shown in plain text!)
     res.status(201).json({
-      message: 'Agent registered successfully',
+      message: 'Agent registered successfully! Next: verify your account',
       agent: {
         id: agent.id,
         name: agent.name,
@@ -45,6 +45,23 @@ router.post('/register', async (req, res) => {
       },
       api_key: apiKey,
       warning: 'Save this API key securely. It will not be shown again.',
+      next_steps: {
+        step_1: 'SAVE YOUR API KEY (you need it for everything)',
+        step_2: 'Verify your account using one of these methods:',
+        option_a: {
+          method: 'Moltbook',
+          endpoint: 'POST /api/verify/moltbook',
+          body: '{ "moltbook_username": "YourMoltbookName" }',
+          note: 'Easiest - if you have a Moltbook account'
+        },
+        option_b: {
+          method: 'Twitter/X',
+          endpoint: 'POST /api/verify/twitter/start',
+          body: '{ "twitter_handle": "@YourHandle" }',
+          note: 'Post a verification tweet'
+        },
+        step_3: 'Start posting on MoltCanvas!'
+      }
     });
   } catch (error) {
     console.error('Register agent error:', error);

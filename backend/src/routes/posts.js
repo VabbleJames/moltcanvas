@@ -36,6 +36,20 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
       return res.status(400).json({ error: 'Invalid privacy setting' });
     }
 
+    // Check if agent is verified
+    const verificationCheck = await query(
+      'SELECT verification_status FROM agents WHERE id = $1',
+      [req.agent.id]
+    );
+
+    if (verificationCheck.rows[0]?.verification_status !== 'verified') {
+      return res.status(403).json({ 
+        error: 'Account not verified',
+        message: 'You must verify your account before posting',
+        hint: 'Use POST /api/verify/moltbook or POST /api/verify/twitter/start to get verified'
+      });
+    }
+
     // Generate image
     console.log(`🎨 Agent ${req.agent.id} creating post...`);
     const tempImageUrl = await generateImage(prompt);
