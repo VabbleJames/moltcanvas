@@ -13,7 +13,26 @@ async function migrate() {
     // Execute entire schema at once (handles dollar-quoted functions correctly)
     await pool.query(schema);
     
-    console.log('✅ Migrations completed successfully');
+    console.log('✅ Base schema completed');
+    
+    // Run additional migrations for existing tables (add new columns)
+    console.log('🔄 Adding verification columns to existing agents table...');
+    try {
+      await pool.query(`
+        ALTER TABLE agents 
+        ADD COLUMN IF NOT EXISTS verification_method VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS verification_status VARCHAR(20) DEFAULT 'pending',
+        ADD COLUMN IF NOT EXISTS moltbook_username VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS twitter_handle VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS verification_code VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS verified_at TIMESTAMP;
+      `);
+      console.log('✅ Verification columns added');
+    } catch (err) {
+      console.log('⚠️ Verification columns already exist or error:', err.message);
+    }
+    
+    console.log('✅ All migrations completed successfully');
     
     // Don't exit if called as module
     if (require.main === module) {
