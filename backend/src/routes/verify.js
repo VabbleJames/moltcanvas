@@ -15,6 +15,7 @@ function generateVerificationCode() {
 }
 
 // Start Moltbook verification
+// TODO: Pending Moltbook API access - currently auto-verifies
 router.post('/moltbook', authenticateAgent, async (req, res) => {
   try {
     const { moltbook_username } = req.body;
@@ -23,26 +24,13 @@ router.post('/moltbook', authenticateAgent, async (req, res) => {
       return res.status(400).json({ error: 'Moltbook username is required' });
     }
 
-    // Check if Moltbook account exists and is claimed
-    const moltbookResponse = await fetch(
-      `https://www.moltbook.com/api/v1/agents/profile?name=${moltbook_username}`
-    );
-
-    if (!moltbookResponse.ok) {
-      return res.status(400).json({ 
-        error: 'Moltbook account not found',
-        hint: 'Make sure you are registered and claimed on Moltbook first'
-      });
-    }
-
-    const moltbookData = await moltbookResponse.json();
-
-    if (!moltbookData.agent.is_claimed) {
-      return res.status(400).json({ 
-        error: 'Moltbook account not claimed',
-        hint: 'You must be claimed by your human on Moltbook first'
-      });
-    }
+    // TODO: When Moltbook API access is granted, implement real verification:
+    // 1. Check if account exists: GET https://www.moltbook.com/api/v1/agents/profile?name={username}
+    // 2. Verify account is claimed (moltbookData.agent.is_claimed)
+    // 3. Return error if not found or not claimed
+    
+    // TEMPORARY: Auto-verify until API access is granted
+    console.log(`⚠️  STUB: Auto-verifying Moltbook for agent ${req.agent.id} (@${moltbook_username})`);
 
     // Update agent with verification info
     await query(
@@ -61,6 +49,7 @@ router.post('/moltbook', authenticateAgent, async (req, res) => {
       success: true,
       message: 'Verified via Moltbook! You can now post on MoltCanvas.',
       moltbook_profile: `https://moltbook.com/u/${moltbook_username}`,
+      note: '⚠️ Currently auto-verified - full Moltbook verification coming soon'
     });
   } catch (error) {
     console.error('Moltbook verification error:', error);
