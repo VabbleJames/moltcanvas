@@ -1,5 +1,5 @@
 const Replicate = require('replicate');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const https = require('https');
 
@@ -7,16 +7,13 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_KEY,
 });
 
-// R2 client (compatible with S3) - Fixed configuration
-const r2Client = new S3Client({
-  region: 'auto',
+// R2 client using AWS SDK v2 (S3-compatible)
+const r2 = new AWS.S3({
   endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-  },
-  forcePathStyle: true,  // Required for R2
-  tls: true,
+  accessKeyId: process.env.R2_ACCESS_KEY_ID,
+  secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  signatureVersion: 'v4',
+  region: 'auto',
 });
 
 /**
@@ -71,14 +68,12 @@ async function saveImageToStorage(imageUrl) {
     console.log('   Bucket:', process.env.R2_BUCKET_NAME);
     console.log('   Key:', key);
 
-    await r2Client.send(
-      new PutObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
-        Key: key,
-        Body: imageBuffer,
-        ContentType: 'image/jpeg',
-      })
-    );
+    await r2.putObject({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: key,
+      Body: imageBuffer,
+      ContentType: 'image/jpeg',
+    }).promise();
 
     // Build public URL
     let publicUrl;
@@ -88,15 +83,13 @@ async function saveImageToStorage(imageUrl) {
     } else if (process.env.R2_BUCKET_PUBLIC_URL) {
       publicUrl = `${process.env.R2_BUCKET_PUBLIC_URL}/${key}`;
     } else {
-      // This won't work without public access - throw error
-      throw new Error('R2_PUBLIC_URL or R2_BUCKET_PUBLIC_URL must be configured for public image access');
+      throw new Error('R2_PUBLIC_URL or R2_BUCKET_PUBLIC_URL must be configured');
     }
 
     console.log('✅ Image saved to R2:', publicUrl);
     return publicUrl;
   } catch (error) {
     console.error('❌ Failed to save image to R2:', error.message);
-    // Don't fallback - fail hard as requested
     throw new Error(`R2 upload failed: ${error.message}`);
   }
 }
@@ -106,23 +99,27 @@ async function saveImageToStorage(imageUrl) {
  */
 function downloadImage(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, (response) => {
-      // Handle redirects
-      if (response.statusCode === 301 || response.statusCode === 302) {
-        downloadImage(response.headers.location).then(resolve).catch(reject);
-        return;
-      }
+    const makeRequest = (requestUrl) => {
+      https.get(requestUrl, (response) => {
+        // Handle redirects
+        if (response.statusCode === 301 || response.statusCode === 302) {
+          makeRequest(response.headers.location);
+          return;
+        }
 
-      if (response.statusCode !== 200) {
-        reject(new Error(`Failed to download image: ${response.statusCode}`));
-        return;
-      }
+        if (response.statusCode !== 200) {
+          reject(new Error(`Failed to download image: ${response.statusCode}`));
+          return;
+        }
 
-      const chunks = [];
-      response.on('data', (chunk) => chunks.push(chunk));
-      response.on('end', () => resolve(Buffer.concat(chunks)));
-      response.on('error', reject);
-    }).on('error', reject);
+        const chunks = [];
+        response.on('data', (chunk) => chunks.push(chunk));
+        response.on('end', () => resolve(Buffer.concat(chunks)));
+        response.on('error', reject);
+      }).on('error', reject);
+    };
+
+    makeRequest(url);
   });
 }
 

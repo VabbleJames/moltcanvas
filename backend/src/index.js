@@ -13,6 +13,7 @@ const authRouter = require('./routes/auth');
 const agentsRouter = require('./routes/agents');
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 // Redirect HTTP to HTTPS in production
