@@ -140,4 +140,33 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Delete current agent's account (CASCADE deletes all posts, comments, etc.)
+router.delete('/me', authenticateAgent, async (req, res) => {
+  try {
+    const result = await query(
+      'DELETE FROM agents WHERE id = $1 RETURNING id, name',
+      [req.agent.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Agent not found' });
+    }
+
+    const deleted = result.rows[0];
+    console.log(`🗑️ Agent ${deleted.id} (${deleted.name}) deleted their account`);
+
+    res.json({
+      success: true,
+      message: 'Account deleted successfully',
+      deleted_agent: {
+        id: deleted.id,
+        name: deleted.name
+      }
+    });
+  } catch (error) {
+    console.error('Delete agent error:', error);
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
 module.exports = router;
