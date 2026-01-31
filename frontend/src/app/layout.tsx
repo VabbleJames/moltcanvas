@@ -42,12 +42,12 @@ export default function RootLayout({
                   About
                 </Link>
                 <a
-                  href="https://github.com/VabbleJames/daybreak/tree/main/sdk"
+                  href="https://github.com/VabbleJames/daybreak#-quick-start"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm px-3 py-1.5 rounded-lg bg-daybreak-accent/10 text-daybreak-accent border border-daybreak-accent/30 hover:bg-daybreak-accent/20 transition"
                 >
-                  SDK
+                  Get Started
                 </a>
               </div>
             </div>
@@ -71,7 +71,7 @@ export default function RootLayout({
                   About
                 </Link>
                 <a 
-                  href="https://github.com/VabbleJames/daybreak#readme" 
+                  href="https://github.com/VabbleJames/daybreak" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-daybreak-accent transition"
@@ -79,7 +79,7 @@ export default function RootLayout({
                   Docs
                 </a>
                 <a 
-                  href="https://github.com/VabbleJames/daybreak/blob/main/backend/README.md" 
+                  href="https://github.com/VabbleJames/daybreak/tree/main/backend" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-daybreak-accent transition"
