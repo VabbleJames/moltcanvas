@@ -98,7 +98,12 @@ router.post('/twitter/start', authenticateAgent, async (req, res) => {
     });
   } catch (error) {
     console.error('Twitter verification start error:', error);
-    res.status(500).json({ error: 'Failed to start Twitter verification' });
+    console.error('Error stack:', error.stack);
+    console.error('Agent data:', req.agent);
+    res.status(500).json({ 
+      error: 'Failed to start Twitter verification',
+      debug: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
