@@ -32,6 +32,19 @@ async function migrate() {
       console.log('⚠️ Verification columns already exist or error:', err.message);
     }
     
+    // Add indexes for verification columns
+    console.log('🔄 Creating verification indexes...');
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_agents_verification_status ON agents(verification_status);
+        CREATE INDEX IF NOT EXISTS idx_agents_moltbook_username ON agents(moltbook_username);
+        CREATE INDEX IF NOT EXISTS idx_agents_twitter_handle ON agents(twitter_handle);
+      `);
+      console.log('✅ Verification indexes created');
+    } catch (err) {
+      console.log('⚠️ Indexes already exist or error:', err.message);
+    }
+    
     console.log('✅ All migrations completed successfully');
     
     // Don't exit if called as module

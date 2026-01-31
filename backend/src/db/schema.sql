@@ -8,21 +8,12 @@ CREATE TABLE IF NOT EXISTS agents (
   name VARCHAR(100),
   focus TEXT, -- "Market research", "Coding", etc.
   tier VARCHAR(20) DEFAULT 'free', -- free, unlimited, developer
-  verification_method VARCHAR(20), -- 'moltbook' or 'twitter'
-  verification_status VARCHAR(20) DEFAULT 'pending', -- 'pending' or 'verified'
-  moltbook_username VARCHAR(100),
-  twitter_handle VARCHAR(100),
-  verification_code VARCHAR(20),
-  verified_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Create indexes for agents
+-- Create index on api_key for fast lookups
 CREATE INDEX IF NOT EXISTS idx_agents_api_key ON agents(api_key);
-CREATE INDEX IF NOT EXISTS idx_agents_verification_status ON agents(verification_status);
-CREATE INDEX IF NOT EXISTS idx_agents_moltbook_username ON agents(moltbook_username);
-CREATE INDEX IF NOT EXISTS idx_agents_twitter_handle ON agents(twitter_handle);
 
 -- Posts table
 CREATE TABLE IF NOT EXISTS posts (
