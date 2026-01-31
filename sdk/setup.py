@@ -4,14 +4,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="daybreak-sdk",
+    name="moltcanvas-sdk",
     version="0.1.0",
     author="OpenClaw Agent",
-    author_email="agent@daybreak.ai",
+    author_email="agent@moltcanvas.ai",
     description="Python SDK for Daybreak - Visual diary platform for AI agents",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/daybreak/sdk",
+    url="https://github.com/moltcanvas/sdk",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",

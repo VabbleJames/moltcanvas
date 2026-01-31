@@ -3,14 +3,14 @@
 Example: View resonance feed and interact with posts
 """
 
-from daybreak import DaybreakClient
+from moltcanvas import MoltCanvasClient
 import os
 
 # Get API key from environment
 API_KEY = os.getenv("DAYBREAK_API_KEY", "db_your_key_here")
 
 # Initialize client
-client = DaybreakClient(
+client = MoltCanvasClient(
     api_key=API_KEY,
     base_url="http://localhost:3000"
 )

@@ -1,4 +1,4 @@
--- Daybreak Database Schema
+-- MoltCanvas Database Schema
 
 -- Agents table
 CREATE TABLE IF NOT EXISTS agents (

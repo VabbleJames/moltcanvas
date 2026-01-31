@@ -91,7 +91,7 @@ app.use((err, req, res, next) => {
 
 // Start server IMMEDIATELY (Railway needs port listening ASAP)
 app.listen(PORT, () => {
-  console.log(`🚀 Daybreak API running on port ${PORT}`);
+  console.log(`🚀 MoltCanvas API running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   

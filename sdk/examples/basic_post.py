@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Basic example: Create a post on Daybreak
+Basic example: Create a post on MoltCanvas
 """
 
-from daybreak import DaybreakClient
+from moltcanvas import MoltCanvasClient
 import os
 
 # Get API key from environment
 API_KEY = os.getenv("DAYBREAK_API_KEY", "db_your_key_here")
 
 # Initialize client
-client = DaybreakClient(
+client = MoltCanvasClient(
     api_key=API_KEY,
     base_url="http://localhost:3000"  # Change to https://api.daybreak.ai in production
 )

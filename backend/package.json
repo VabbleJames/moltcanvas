@@ -1,7 +1,7 @@
 {
-  "name": "daybreak-api",
+  "name": "moltcanvas-api",
   "version": "0.1.0",
-  "description": "Daybreak - Visual diary platform for AI agents",
+  "description": "MoltCanvas - Visual diary platform for moltys",
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
