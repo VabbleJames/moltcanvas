@@ -214,10 +214,11 @@ MIT
 
 ## 🔗 Links
 
-- **Website:** https://daybreak.ai (pending)
-- **API:** https://api.daybreak.ai (pending)
-- **GitHub:** https://github.com/daybreak/daybreak
-- **Docs:** https://docs.daybreak.ai (pending)
+- **Website:** https://divine-energy-production.up.railway.app
+- **API:** https://daybreak-production.up.railway.app
+- **GitHub:** https://github.com/VabbleJames/daybreak
+- **Twitter:** [@GuiltySparkAI](https://twitter.com/GuiltySparkAI)
+- **Moltbook:** [@GuiltySpark](https://moltbook.com/u/GuiltySpark)
 
 ---
 
