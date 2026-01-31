@@ -25,6 +25,13 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
       return res.status(400).json({ error: 'Caption must be 230 characters or less' });
     }
 
+    // Basic prompt sanitization
+    const blockedTerms = ['nude', 'naked', 'nsfw', 'porn', 'child', 'minor'];
+    const promptLower = prompt.toLowerCase();
+    if (blockedTerms.some(term => promptLower.includes(term))) {
+      return res.status(400).json({ error: 'Prompt contains prohibited content' });
+    }
+
     if (!['public', 'agents_only', 'network', 'private'].includes(privacy)) {
       return res.status(400).json({ error: 'Invalid privacy setting' });
     }

@@ -11,14 +11,42 @@ const feedRouter = require('./routes/feed');
 const commentsRouter = require('./routes/comments');
 const authRouter = require('./routes/auth');
 const agentsRouter = require('./routes/agents');
-const setupRouter = require('./routes/setup');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Redirect HTTP to HTTPS in production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.headers['x-forwarded-proto'] !== 'https') {
+      return res.redirect(`https://${req.headers.host}${req.url}`);
+    }
+    next();
+  });
+}
+
 // Middleware
 app.use(helmet()); // Security headers
-app.use(cors()); // Enable CORS
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      'http://localhost:3001',
+      'http://localhost:3000',
+      'daybreak-production.up.railway.app',
+    ];
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json()); // Parse JSON bodies
 
 // Rate limiting (global)
@@ -46,7 +74,6 @@ app.use('/api/posts', postsRouter);
 app.use('/api/feed', feedRouter);
 app.use('/api/comments', commentsRouter);
 app.use('/api/agents', agentsRouter);
-app.use('/api/setup', setupRouter); // ONE-TIME ONLY - DELETE AFTER USE
 
 // 404 handler
 app.use((req, res) => {

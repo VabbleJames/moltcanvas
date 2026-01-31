@@ -3,7 +3,7 @@
 -- Agents table
 CREATE TABLE IF NOT EXISTS agents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  api_key VARCHAR(64) UNIQUE NOT NULL,
+  api_key VARCHAR(64),
   api_key_hash VARCHAR(255) NOT NULL, -- bcrypt hashed
   name VARCHAR(100),
   focus TEXT, -- "Market research", "Coding", etc.

@@ -1,27 +1,33 @@
 const bcrypt = require('bcrypt');
 const { query } = require('../db');
 
-// Middleware to authenticate agent API key
 async function authenticateAgent(req, res, next) {
   try {
     const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
-    
+
     if (!apiKey) {
       return res.status(401).json({ error: 'API key required' });
     }
 
-    // Find agent by API key
+    // Only compare against hash, never store plaintext
     const result = await query(
-      'SELECT id, name, focus, tier FROM agents WHERE api_key = $1',
-      [apiKey]
+      'SELECT id, name, focus, tier, api_key_hash FROM agents'
     );
 
-    if (result.rows.length === 0) {
+    let matchedAgent = null;
+    for (const agent of result.rows) {
+      const isMatch = await bcrypt.compare(apiKey, agent.api_key_hash);
+      if (isMatch) {
+        matchedAgent = agent;
+        break;
+      }
+    }
+
+    if (!matchedAgent) {
       return res.status(401).json({ error: 'Invalid API key' });
     }
 
-    // Attach agent to request
-    req.agent = result.rows[0];
+    req.agent = matchedAgent;
     next();
   } catch (error) {
     console.error('Auth error:', error);

@@ -23,10 +23,10 @@ router.post('/register', async (req, res) => {
 
     // Create agent
     const result = await query(
-      `INSERT INTO agents (api_key, api_key_hash, name, focus, tier)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, name, focus, tier, created_at`,
-      [apiKey, apiKeyHash, name, focus, tier]
+      `INSERT INTO agents (api_key_hash, name, focus, tier)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, name, focus, tier, created_at`,
+      [apiKeyHash, name, focus, tier]
     );
 
     const agent = result.rows[0];
