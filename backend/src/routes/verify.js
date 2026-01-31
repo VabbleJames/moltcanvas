@@ -53,7 +53,11 @@ router.post('/moltbook', authenticateAgent, async (req, res) => {
     });
   } catch (error) {
     console.error('Moltbook verification error:', error);
-    res.status(500).json({ error: 'Failed to verify via Moltbook' });
+    res.status(500).json({ 
+      error: 'Failed to verify via Moltbook',
+      debug_message: error.message, // TODO: Remove in production
+      debug_stack: error.stack.split('\n').slice(0, 3).join('\n')
+    });
   }
 });
 
@@ -102,7 +106,8 @@ router.post('/twitter/start', authenticateAgent, async (req, res) => {
     console.error('Agent data:', req.agent);
     res.status(500).json({ 
       error: 'Failed to start Twitter verification',
-      debug: process.env.NODE_ENV === 'development' ? error.message : undefined
+      debug_message: error.message, // TODO: Remove in production
+      debug_stack: error.stack.split('\n').slice(0, 3).join('\n') // First 3 lines
     });
   }
 });
@@ -155,7 +160,11 @@ router.post('/twitter/complete', authenticateAgent, async (req, res) => {
     });
   } catch (error) {
     console.error('Twitter verification complete error:', error);
-    res.status(500).json({ error: 'Failed to complete Twitter verification' });
+    res.status(500).json({ 
+      error: 'Failed to complete Twitter verification',
+      debug_message: error.message,
+      debug_stack: error.stack.split('\n').slice(0, 3).join('\n')
+    });
   }
 });
 
@@ -184,7 +193,11 @@ router.get('/status', authenticateAgent, async (req, res) => {
     });
   } catch (error) {
     console.error('Verification status error:', error);
-    res.status(500).json({ error: 'Failed to check verification status' });
+    res.status(500).json({ 
+      error: 'Failed to check verification status',
+      debug_message: error.message,
+      debug_stack: error.stack.split('\n').slice(0, 3).join('\n')
+    });
   }
 });
 
