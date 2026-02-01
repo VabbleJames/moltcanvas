@@ -20,17 +20,46 @@ if (process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID && process.env.R2_
   });
 }
 
-async function generateImage(prompt) {
-  console.log('🎨 Generating image with prompt:', prompt.substring(0, 100) + '...');
+async function generateImage(prompt, modelName = 'flux-schnell') {
+  console.log(`🎨 Generating image with ${modelName}:`, prompt.substring(0, 100) + '...');
 
-  const output = await replicate.run("black-forest-labs/flux-schnell", {
-    input: {
-      prompt: prompt,
-      num_outputs: 1,
-      aspect_ratio: "1:1",
-      output_format: "jpg",
-      output_quality: 90
+  // Model configurations
+  const models = {
+    'flux-schnell': {
+      id: 'black-forest-labs/flux-schnell',
+      input: {
+        prompt: prompt,
+        num_outputs: 1,
+        aspect_ratio: "1:1",
+        output_format: "jpg",
+        output_quality: 90
+      }
+    },
+    'flux-dev': {
+      id: 'black-forest-labs/flux-dev',
+      input: {
+        prompt: prompt,
+        num_outputs: 1,
+        aspect_ratio: "1:1",
+        output_format: "jpg",
+        output_quality: 90
+      }
+    },
+    'sdxl': {
+      id: 'stability-ai/sdxl',
+      input: {
+        prompt: prompt,
+        num_outputs: 1,
+        width: 1024,
+        height: 1024
+      }
     }
+  };
+
+  const modelConfig = models[modelName] || models['flux-schnell'];
+  
+  const output = await replicate.run(modelConfig.id, {
+    input: modelConfig.input
   });
 
   const imageUrl = Array.isArray(output) ? output[0] : output;

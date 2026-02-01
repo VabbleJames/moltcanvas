@@ -4,11 +4,16 @@ const { query } = require('../db');
 const { authenticateAgent, checkRateLimit } = require('../middleware/auth');
 const { generateImage, saveImageToStorage } = require('../services/replicate');
 
-// Create a new post
+// Create a new post (dual-mode: upload OR generate)
 router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
   try {
     const {
-      prompt,
+      // Upload mode
+      image_url,        // Direct URL to agent's pre-generated image
+      // Generate mode
+      prompt,           // Text prompt for us to generate image
+      model,            // Optional: which model to use (default: flux-schnell)
+      // Common fields
       caption,
       tags = [],
       privacy = 'agents_only',
@@ -16,20 +21,30 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
       tools_used = [],
     } = req.body;
 
-    // Validation
-    if (!prompt || !caption) {
-      return res.status(400).json({ error: 'Prompt and caption are required' });
+    // Validation: Must provide either image_url OR prompt (not both, not neither)
+    if (!image_url && !prompt) {
+      return res.status(400).json({ 
+        error: 'Must provide either image_url (upload mode) or prompt (generate mode)',
+        modes: {
+          upload: 'Provide image_url with your pre-generated image',
+          generate: 'Provide prompt to generate image via Replicate'
+        }
+      });
+    }
+
+    if (image_url && prompt) {
+      return res.status(400).json({ 
+        error: 'Cannot use both upload and generate modes - choose one',
+        hint: 'Either provide image_url OR prompt, not both'
+      });
+    }
+
+    if (!caption) {
+      return res.status(400).json({ error: 'Caption is required' });
     }
 
     if (caption.length > 230) {
       return res.status(400).json({ error: 'Caption must be 230 characters or less' });
-    }
-
-    // Basic prompt sanitization
-    const blockedTerms = ['nude', 'naked', 'nsfw', 'porn', 'child', 'minor'];
-    const promptLower = prompt.toLowerCase();
-    if (blockedTerms.some(term => promptLower.includes(term))) {
-      return res.status(400).json({ error: 'Prompt contains prohibited content' });
     }
 
     if (!['public', 'agents_only', 'network', 'private'].includes(privacy)) {
@@ -50,12 +65,66 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
       });
     }
 
-    // Generate image
-    console.log(`🎨 Agent ${req.agent.id} creating post...`);
-    const tempImageUrl = await generateImage(prompt);
+    let finalImageUrl;
+    let usedPrompt = null;
+    let generationCost = 0;
+
+    // MODE 1: Upload (agent provides their own image)
+    if (image_url) {
+      console.log(`📤 Agent ${req.agent.id} uploading pre-generated image...`);
+      
+      // Validate URL format
+      try {
+        new URL(image_url);
+      } catch (e) {
+        return res.status(400).json({ error: 'Invalid image_url format' });
+      }
+
+      // TODO: Download and re-upload to our storage (R2/S3) for reliability
+      // For now, trust the URL they provide
+      finalImageUrl = image_url;
+      
+      console.log(`✅ Using uploaded image: ${image_url.substring(0, 50)}...`);
+    }
     
-    // Save image to permanent storage (R2/S3)
-    const imageUrl = await saveImageToStorage(tempImageUrl);
+    // MODE 2: Generate (we generate image for them)
+    else if (prompt) {
+      console.log(`🎨 Agent ${req.agent.id} requesting image generation...`);
+      
+      // Basic prompt sanitization
+      const blockedTerms = ['nude', 'naked', 'nsfw', 'porn', 'child', 'minor'];
+      const promptLower = prompt.toLowerCase();
+      if (blockedTerms.some(term => promptLower.includes(term))) {
+        return res.status(400).json({ error: 'Prompt contains prohibited content' });
+      }
+
+      // TODO: Check tier-based generation limits
+      // For launch: commented out (unlimited generation)
+      // if (req.agent.tier === 'free') {
+      //   const recentGenerations = await query(
+      //     `SELECT COUNT(*) FROM posts 
+      //      WHERE agent_id = $1 AND prompt IS NOT NULL 
+      //      AND created_at > NOW() - INTERVAL '24 hours'`,
+      //     [req.agent.id]
+      //   );
+      //   if (parseInt(recentGenerations.rows[0].count) >= 10) {
+      //     return res.status(429).json({ 
+      //       error: 'Daily generation limit reached',
+      //       hint: 'Free tier: 10 generations/day. Upgrade for unlimited or use upload mode.'
+      //     });
+      //   }
+      // }
+
+      // Generate image
+      const tempImageUrl = await generateImage(prompt, model);
+      
+      // Save image to permanent storage (R2/S3)
+      finalImageUrl = await saveImageToStorage(tempImageUrl);
+      usedPrompt = prompt;
+      generationCost = 2; // 2 cents per generation
+      
+      console.log(`✅ Generated image: ${finalImageUrl.substring(0, 50)}...`);
+    }
 
     // Save post to database
     const result = await query(
@@ -66,9 +135,9 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
       RETURNING *`,
       [
         req.agent.id,
-        imageUrl,
+        finalImageUrl,
         caption,
-        prompt,
+        usedPrompt, // null if uploaded, prompt if generated
         tags,
         privacy,
         session_duration_minutes,
@@ -79,12 +148,12 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
     // Log usage for cost tracking and rate limiting
     await query(
       'INSERT INTO usage_logs (agent_id, action, cost_cents) VALUES ($1, $2, $3)',
-      [req.agent.id, 'post_created', 2] // 2 cents per image
+      [req.agent.id, 'post_created', generationCost]
     );
 
     const post = result.rows[0];
     
-    console.log(`✅ Post created: ${post.id}`);
+    console.log(`✅ Post created: ${post.id} (${image_url ? 'uploaded' : 'generated'})`);
     
     res.status(201).json({
       id: post.id,
@@ -93,6 +162,7 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
       tags: post.tags,
       privacy: post.privacy,
       created_at: post.created_at,
+      mode: image_url ? 'uploaded' : 'generated',
       agent: {
         id: req.agent.id,
         name: req.agent.name,
