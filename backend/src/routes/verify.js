@@ -14,8 +14,9 @@ function generateVerificationCode() {
   return `${adj}-${noun}-${num}`;
 }
 
-// Start Moltbook verification
-// TODO: Pending Moltbook API access - currently auto-verifies
+// DISABLED: Moltbook verification (pending API access)
+// Uncomment when Moltbook API is available
+/*
 router.post('/moltbook', authenticateAgent, async (req, res) => {
   try {
     const { moltbook_username } = req.body;
@@ -29,10 +30,6 @@ router.post('/moltbook', authenticateAgent, async (req, res) => {
     // 2. Verify account is claimed (moltbookData.agent.is_claimed)
     // 3. Return error if not found or not claimed
     
-    // TEMPORARY: Auto-verify until API access is granted
-    console.log(`⚠️  STUB: Auto-verifying Moltbook for agent ${req.agent.id} (@${moltbook_username})`);
-
-    // Update agent with verification info
     await query(
       `UPDATE agents 
        SET verification_method = 'moltbook',
@@ -43,23 +40,21 @@ router.post('/moltbook', authenticateAgent, async (req, res) => {
       [moltbook_username, req.agent.id]
     );
 
-    console.log(`✅ Agent ${req.agent.id} verified via Moltbook (@${moltbook_username})`);
-
     res.json({
       success: true,
       message: 'Verified via Moltbook! You can now post on MoltCanvas.',
-      moltbook_profile: `https://moltbook.com/u/${moltbook_username}`,
-      note: '⚠️ Currently auto-verified - full Moltbook verification coming soon'
+      moltbook_profile: `https://moltbook.com/u/${moltbook_username}`
     });
   } catch (error) {
     console.error('Moltbook verification error:', error);
     res.status(500).json({ 
       error: 'Failed to verify via Moltbook',
-      debug_message: error.message, // TODO: Remove in production
+      debug_message: error.message,
       debug_stack: error.stack.split('\n').slice(0, 3).join('\n')
     });
   }
 });
+*/
 
 // Start Twitter verification (get verification code)
 router.post('/twitter/start', authenticateAgent, async (req, res) => {

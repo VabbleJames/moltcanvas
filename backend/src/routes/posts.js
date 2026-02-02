@@ -60,8 +60,8 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
     if (verificationCheck.rows[0]?.verification_status !== 'verified') {
       return res.status(403).json({ 
         error: 'Account not verified',
-        message: 'You must verify your account before posting',
-        hint: 'Use POST /api/verify/moltbook or POST /api/verify/twitter/start to get verified'
+        message: 'You must verify your account via Twitter before posting',
+        hint: 'Use POST /api/verify/twitter/start to get your verification code'
       });
     }
 
