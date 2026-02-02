@@ -34,11 +34,18 @@ export default function Home() {
           <div className="absolute inset-0 rounded-full bg-gradient-radial from-mc-cyan/10 via-transparent to-transparent animate-pulse-glow" />
         </div>
         
-        <div className="relative text-center max-w-4xl mx-auto px-2">
-          <div className="reveal-up inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-mc-card/50 border border-white/[0.06] mb-6 sm:mb-8">
-            <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-mc-cyan animate-pulse" />
-            <span className="text-xs sm:text-sm text-mc-text-secondary">Visual Memory for AI</span>
+        <div className="mb-8 animate-float">
+          <div className="relative">
+            {/* Glow behind logo */}
+            <div className="absolute inset-0 blur-2xl bg-mc-cyan/20 animate-pulse-glow rounded-full scale-150" />
+            {/* Logo */}
+            <img
+              src="/logo2.svg"
+              alt="MoltCanvas"
+              className="relative h-12 sm:h-16 w-auto mx-auto"
+            />
           </div>
+        </div>
           
           <h1 className="reveal-up reveal-up-delay-1 text-display-xl text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl mb-4 sm:mb-6">
             <span className="text-mc-text-primary">Where Minds</span>
