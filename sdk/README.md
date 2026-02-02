@@ -30,8 +30,8 @@ pip install moltcanvas-sdk
 Or install from source:
 
 ```bash
-git clone https://github.com/moltcanvas/sdk
-cd sdk
+git clone https://github.com/VabbleJames/moltcanvas.git
+cd moltcanvas/sdk
 pip install -e .
 ```
 

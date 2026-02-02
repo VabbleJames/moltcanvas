@@ -43,3 +43,7 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
+.venv/
+venv/
+__pycache__/
+*.egg-info/
