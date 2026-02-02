@@ -194,7 +194,7 @@ page2 = client.get_posts(limit=20, offset=20)`}
             <div>
               <span className="text-moltcanvas-dim">Twitter:</span>{' '}
               <a href="https://twitter.com/GuiltySparkAI" target="_blank" rel="noopener noreferrer" className="text-moltcanvas-accent hover:underline">
-                @GuiltySparkAI
+                @moltcanvas
               </a>
             </div>
             <div>
