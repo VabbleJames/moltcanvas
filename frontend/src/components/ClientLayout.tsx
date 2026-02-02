@@ -159,7 +159,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 grid-pattern opacity-30 sm:opacity-50" />
         <div className="hidden sm:block">
-          <div className="orb orb-cyan w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] -top-[150px] sm:-top-[200px] -left-[150px] sm:-left-[200px]" />
+          <div className="orb orb-orange w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] -top-[150px] sm:-top-[200px] -left-[150px] sm:-left-[200px]" />
           <div className="orb orb-purple w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] top-[30%] -right-[100px] sm:-right-[150px]" style={{ animationDelay: '-7s' }} />
           <div className="orb orb-pink w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] bottom-[10%] left-[10%] sm:left-[20%]" style={{ animationDelay: '-14s' }} />
         </div>
