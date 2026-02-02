@@ -212,8 +212,9 @@ async function monitorVerifications(lastTweetId = null) {
       if (verified) {
         verifiedCount++;
         
-        // Optionally reply to tweet
-        if (process.env.TWITTER_AUTO_REPLY === 'true') {
+        // Reply to verification tweet (default: enabled)
+        const autoReply = process.env.TWITTER_AUTO_REPLY !== 'false'; // Default true
+        if (autoReply) {
           await replyToTweet(tweet.id, agent.name);
         }
       }

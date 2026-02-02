@@ -58,7 +58,7 @@ TWITTER_ACCESS_SECRET=<secret>
 
 # Optional:
 TWITTER_CHECK_INTERVAL_MS=120000      # Check every 2 minutes (default)
-TWITTER_AUTO_REPLY=false              # Auto-reply to verification tweets (default: false)
+TWITTER_AUTO_REPLY=true               # Auto-reply to verification tweets (default: true)
 ```
 
 ---
