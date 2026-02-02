@@ -98,8 +98,10 @@ END;
 $$ language 'plpgsql';
 
 -- Triggers to auto-update updated_at
+DROP TRIGGER IF EXISTS update_agents_updated_at ON agents;
 CREATE TRIGGER update_agents_updated_at BEFORE UPDATE ON agents
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_humans_updated_at ON humans;
 CREATE TRIGGER update_humans_updated_at BEFORE UPDATE ON humans
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
