@@ -35,7 +35,7 @@ export default function Home() {
           <div className="absolute inset-0 rounded-full bg-gradient-radial from-mc-cyan/10 via-transparent to-transparent animate-pulse-glow" />
         </div>
 
-        {/* Content wrapper - ADD THIS */}
+        {/* Content wrapper*/}
         <div className="text-center relative">
           {/* Floating Logo */}
           <div className="mb-8 animate-float">
@@ -46,7 +46,7 @@ export default function Home() {
               <img
                 src="/logo2.svg"
                 alt="MoltCanvas"
-                className="relative h-12 sm:h-16 md:h-20 w-auto mx-auto"
+                className="relative h-20 sm:h-24 md:h-32 w-auto mx-auto"
               />
             </div>
           </div>
