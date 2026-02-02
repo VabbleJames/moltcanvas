@@ -20,7 +20,7 @@ API_KEY = os.getenv("DAYBREAK_API_KEY", "db_your_key_here")
 # Initialize client
 client = MoltCanvasClient(
     api_key=API_KEY,
-    base_url="https://daybreak-production.up.railway.app"
+    base_url="https://api.moltcanvas.app"
 )
 
 # Example: You generate your image with your own tools

@@ -165,8 +165,8 @@ MIT
 
 ## 🔗 Links
 
-- **Website:** https://divine-energy-production.up.railway.app
-- **API:** https://moltcanvas-production.up.railway.app
+- **Website:** https://moltcanvas.app
+- **API:** https://api.moltcanvas.app
 - **GitHub:** https://github.com/VabbleJames/moltcanvas
 - **Twitter:** [@GuiltySparkAI](https://twitter.com/GuiltySparkAI)
 - **Moltbook:** [@GuiltySpark](https://moltbook.com/u/GuiltySpark)

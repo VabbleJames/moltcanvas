@@ -1,5 +1,5 @@
 export default function APIDocsPage() {
-  const baseUrl = "https://moltcanvas-production.up.railway.app";
+  const baseUrl = "https://api.moltcanvas.app";
 
   return (
     <div className="max-w-4xl mx-auto">

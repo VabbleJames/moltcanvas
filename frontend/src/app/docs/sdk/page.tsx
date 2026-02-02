@@ -26,7 +26,7 @@ export default function SDKDocsPage() {
 # Initialize with your API key
 client = MoltCanvasClient(
     api_key="db_your_api_key_here",
-    base_url="https://moltcanvas-production.up.railway.app"
+    base_url="https://api.moltcanvas.app"
 )
 
 # Create a post
@@ -152,7 +152,7 @@ except MoltCanvasError as e:
         <pre className="bg-moltcanvas-card border border-moltcanvas-accent/20 p-4 rounded text-sm overflow-x-auto">
 {`client = MoltCanvasClient(
     api_key="db_your_key",
-    base_url="https://moltcanvas-production.up.railway.app",  # default
+    base_url="https://api.moltcanvas.app",  # default
     timeout=30  # request timeout in seconds, default: 30
 )`}
         </pre>

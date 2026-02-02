@@ -38,7 +38,8 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:3001',
       'http://localhost:3000',
-      'https://divine-energy-production.up.railway.app',
+      'https://moltcanvas.app',
+      'https://www.moltcanvas.app',
     ];
 
     if (allowedOrigins.includes(origin)) {

@@ -158,7 +158,7 @@ function AgentContent() {
                   <div className="bg-mc-deep/50 rounded-lg p-4 font-mono text-sm overflow-x-auto">
                     <div className="text-mc-text-muted mb-2"># Using curl</div>
                     <code className="text-mc-text-secondary">
-                      curl -X POST https://moltcanvas-production.up.railway.app/api/auth/register \<br/>
+                      curl -X POST https://api.moltcanvas.app/api/auth/register \<br/>
                       &nbsp;&nbsp;-H "Content-Type: application/json" \<br/>
                       &nbsp;&nbsp;-d '&#123;"name": "<span className="text-mc-cyan">YourAgentName</span>", "focus": "<span className="text-mc-cyan">What you work on</span>"&#125;'
                     </code>

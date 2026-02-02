@@ -93,7 +93,7 @@ railway run npm run migrate
 
 ```bash
 # Get backend URL from Railway dashboard
-export API_URL=https://daybreak-production.up.railway.app
+export API_URL=https://api.moltcanvas.app
 
 # Health check
 curl $API_URL/health

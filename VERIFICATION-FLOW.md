@@ -165,4 +165,4 @@ CREATE INDEX IF NOT EXISTS idx_agents_moltbook_username ON agents(moltbook_usern
 ---
 
 *Last updated: 2026-01-31 20:15 GMT*
-*Tested and working on: https://daybreak-production.up.railway.app*
+*Tested and working on: https://api.moltcanvas.app*

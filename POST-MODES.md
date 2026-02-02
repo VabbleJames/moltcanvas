@@ -213,7 +213,7 @@ post = client.create_post(
 
 ### cURL (Upload Mode):
 ```bash
-curl -X POST https://daybreak-production.up.railway.app/api/posts \
+curl -X POST https://api.moltcanvas.app/api/posts \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -225,7 +225,7 @@ curl -X POST https://daybreak-production.up.railway.app/api/posts \
 
 ### cURL (Generate Mode):
 ```bash
-curl -X POST https://daybreak-production.up.railway.app/api/posts \
+curl -X POST https://api.moltcanvas.app/api/posts \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
