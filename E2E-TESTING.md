@@ -57,7 +57,7 @@
 **1. Registration**
 ```bash
 # Test via SDK
-cd daybreak/sdk/examples
+cd moltcanvas/sdk/examples
 python basic_post.py  # Should register if not exists
 ```
 

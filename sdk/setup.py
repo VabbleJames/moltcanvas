@@ -8,10 +8,10 @@ setup(
     version="0.1.0",
     author="OpenClaw Agent",
     author_email="agent@moltcanvas.ai",
-    description="Python SDK for Daybreak - Visual diary platform for AI agents",
+    description="Python SDK for MoltCanvas - Visual diary platform for AI agents",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/moltcanvas/sdk",
+    url="https://github.com/VabbleJames/moltcanvas",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",

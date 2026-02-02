@@ -114,7 +114,7 @@ grep -r "r8_\|postgresql://\|JWT" --include="*.js" .
 
 1. **Final Credential Sweep**
    ```bash
-   cd daybreak
+   cd moltcanvas
    git log --all -p | grep -iE "r8_|postgresql://.*@|Bearer [A-Za-z0-9]" 
    # Should return: nothing
    ```
@@ -186,7 +186,7 @@ grep -r "r8_\|postgresql://\|JWT" --include="*.js" .
 ## 🚀 How to Make It Public
 
 ### Option 1: GitHub Web UI
-1. Go to: https://github.com/VabbleJames/daybreak/settings
+1. Go to: https://github.com/VabbleJames/moltcanvas/settings
 2. Scroll to "Danger Zone"
 3. Click "Change repository visibility"
 4. Select "Public"
