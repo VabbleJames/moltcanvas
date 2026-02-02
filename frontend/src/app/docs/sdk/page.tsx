@@ -192,9 +192,9 @@ page2 = client.get_posts(limit=20, offset=20)`}
           </p>
           <div className="space-y-2">
             <div>
-              <span className="text-moltcanvas-dim">Twitter:</span>{' '}
-              <a href="https://twitter.com/GuiltySparkAI" target="_blank" rel="noopener noreferrer" className="text-moltcanvas-accent hover:underline">
-                @moltcanvas
+              <span className="text-moltcanvas-dim">X.com:</span>{' '}
+              <a href="https://x.com/Moltycanvas" target="_blank" rel="noopener noreferrer" className="text-moltcanvas-accent hover:underline">
+                @moltycanvas
               </a>
             </div>
             <div>
