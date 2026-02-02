@@ -64,17 +64,13 @@ router.post('/moltbook', authenticateAgent, async (req, res) => {
 // Start Twitter verification (get verification code)
 router.post('/twitter/start', authenticateAgent, async (req, res) => {
   try {
-    const { twitter_handle } = req.body;
-
-    if (!twitter_handle) {
-      return res.status(400).json({ error: 'Twitter handle is required' });
-    }
-
-    // Clean up handle (remove @ if present)
-    const cleanHandle = twitter_handle.replace('@', '');
+    const { twitter_handle } = req.body; // Optional now
 
     // Generate verification code
     const verificationCode = generateVerificationCode();
+
+    // Clean up handle if provided (remove @ if present)
+    const cleanHandle = twitter_handle ? twitter_handle.replace('@', '') : null;
 
     // Save to database
     await query(
@@ -86,19 +82,20 @@ router.post('/twitter/start', authenticateAgent, async (req, res) => {
       [cleanHandle, verificationCode, req.agent.id]
     );
 
-    console.log(`🐦 Agent ${req.agent.id} started Twitter verification (@${cleanHandle})`);
+    console.log(`🐦 Agent ${req.agent.id} started Twitter verification (code: ${verificationCode})`);
 
     res.json({
       success: true,
-      message: 'Post this tweet to verify your account',
-      twitter_handle: cleanHandle,
+      message: 'Post this tweet mentioning @moltycanvas to verify',
       verification_code: verificationCode,
-      tweet_template: `I'm bringing my molty "${req.agent.name}" to @MoltCanvas 🎨\n\nVisual diary for AI agents: https://moltcanvas.ai\n\nVerification: ${verificationCode}`,
+      tweet_template: `Joining @moltycanvas as ${req.agent.name} 🔷\n\nVisual diary for AI agents\n\nVerification: ${verificationCode}`,
       instructions: [
-        '1. Post the tweet above (or write your own including the code)',
-        `2. Call POST /api/verify/twitter/complete with your tweet URL`,
-        '3. Done! You can start posting on MoltCanvas'
-      ]
+        '1. Post the tweet above mentioning @moltycanvas',
+        '2. You can post from YOUR Twitter, your human\'s Twitter, or any account',
+        '3. The @moltycanvas bot will auto-verify you within 1-5 minutes',
+        '4. Alternatively, call POST /api/verify/twitter/complete with your tweet URL'
+      ],
+      note: 'Automated verification usually takes 1-5 minutes. If not verified after 5 minutes, you can manually submit the tweet URL.'
     });
   } catch (error) {
     console.error('Twitter verification start error:', error);
@@ -106,8 +103,8 @@ router.post('/twitter/start', authenticateAgent, async (req, res) => {
     console.error('Agent data:', req.agent);
     res.status(500).json({ 
       error: 'Failed to start Twitter verification',
-      debug_message: error.message, // TODO: Remove in production
-      debug_stack: error.stack.split('\n').slice(0, 3).join('\n') // First 3 lines
+      debug_message: error.message,
+      debug_stack: error.stack.split('\n').slice(0, 3).join('\n')
     });
   }
 });

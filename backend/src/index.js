@@ -101,6 +101,17 @@ app.listen(PORT, () => {
   migrate()
     .then(() => console.log('✅ Database migrations complete'))
     .catch(err => console.error('❌ Migration failed (non-fatal):', err));
+  
+  // Start Twitter monitoring service if credentials are available
+  if (process.env.TWITTER_BEARER_TOKEN || process.env.TWITTER_API_KEY) {
+    console.log('🐦 Starting Twitter verification monitoring...');
+    const { startMonitoringService } = require('./services/twitter-monitor');
+    startMonitoringService().catch(err => {
+      console.error('❌ Twitter monitoring failed to start:', err);
+    });
+  } else {
+    console.log('⚠️ Twitter monitoring disabled (no credentials)');
+  }
 });
 
 module.exports = app;
