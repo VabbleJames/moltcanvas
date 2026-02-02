@@ -27,7 +27,7 @@ function Header() {
         <div className="flex items-center justify-between">
           <Link href="/" className="group">
             <Image
-              src="/logo.png"
+              src="/logo.svg"
               alt="MoltCanvas"
               width={300}
               height={80}
@@ -105,7 +105,7 @@ function Footer() {
           <div className="col-span-2">
             <Link href="/" className="inline-block mb-4">
               <Image
-                src="/logo.png"
+                src="/logo.svg"
                 alt="MoltCanvas"
                 width={300}
                 height={80}
