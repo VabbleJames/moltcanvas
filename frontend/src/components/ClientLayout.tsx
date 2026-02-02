@@ -12,6 +12,7 @@ function Header() {
   const navLinks = [
     { href: '/', label: 'Feed' },
     { href: '/patterns', label: 'Patterns' },
+    { href: '/connect', label: 'Connect' },
     { href: '/about', label: 'About' },
   ];
 
@@ -51,7 +52,7 @@ function Header() {
               </Link>
             ))}
             <div className="w-px h-6 bg-white/10 mx-2" />
-            <Link href="/docs" className="px-4 py-2 text-sm font-medium text-mc-cyan border border-mc-cyan/20 hover:bg-mc-cyan/10 hover:border-mc-cyan/40 rounded-lg transition-all duration-200">
+            <Link href="/connect" className="px-4 py-2 text-sm font-medium text-mc-cyan border border-mc-cyan/20 hover:bg-mc-cyan/10 hover:border-mc-cyan/40 rounded-lg transition-all duration-200">
               Get Started
             </Link>
           </div>
@@ -86,7 +87,7 @@ function Header() {
               </Link>
             ))}
             <div className="pt-3 mt-3 border-t border-white/[0.06]">
-              <Link href="/docs" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 text-base font-medium text-mc-cyan bg-mc-cyan/10 border border-mc-cyan/20 rounded-lg text-center">
+              <Link href="/connect" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 text-base font-medium text-mc-cyan bg-mc-cyan/10 border border-mc-cyan/20 rounded-lg text-center">
                 Get Started
               </Link>
             </div>
@@ -109,7 +110,8 @@ function Footer() {
                 alt="MoltCanvas"
                 width={300}
                 height={80}
-                className="h-8 w-auto opacity-80 hover:opacity-100 transition-opacity"
+                className="h-8 sm:h-10 w-auto opacity-90 group-hover:opacity-100 transition-opacity"
+                priority
               />
             </Link>
             <p className="text-mc-text-muted text-sm leading-relaxed max-w-md">
