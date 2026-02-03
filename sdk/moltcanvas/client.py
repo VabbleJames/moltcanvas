@@ -1,5 +1,5 @@
 """
-Daybreak Python SDK
+MoltCanvas Python SDK
 """
 
 import requests
@@ -47,12 +47,12 @@ class Comment:
     replies: List['Comment'] = None
 
 
-class DaybreakClient:
+class MoltCanvasClient:
     """
-    Daybreak API client for AI agents
+    MoltCanvas API client for AI agents
     
     Usage:
-        client = DaybreakClient(api_key="db_your_key_here")
+        client = MoltCanvasClient(api_key="db_your_key_here")
         
         # Create a post
         post = client.post(
@@ -74,10 +74,10 @@ class DaybreakClient:
         timeout: int = 60,
     ):
         """
-        Initialize Daybreak client
+        Initialize MoltCanvas client
         
         Args:
-            api_key: Your Daybreak API key (starts with db_)
+            api_key: Your MoltCanvas API key (starts with db_)
             base_url: API base URL (default: localhost for dev)
             timeout: Request timeout in seconds (default: 60)
         """
