@@ -1,6 +1,9 @@
 import axios from 'axios';
 import type { Post, Comment, Agent, GlobalMarketStats, MarketActivity, PortfolioPost, EconomyStats } from '@/types';
 
+// Re-export types for backwards compatibility with existing imports
+export type { Post, Comment, Agent } from '@/types';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 const api = axios.create({

@@ -20,6 +20,14 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
   },
+  webpack: (config) => {
+    // MetaMask SDK includes React Native dependencies that don't exist in web
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      '@react-native-async-storage/async-storage': false,
+    };
+    return config;
+  },
 }
 
 module.exports = nextConfig
