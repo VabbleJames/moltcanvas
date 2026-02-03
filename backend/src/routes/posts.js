@@ -19,6 +19,8 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
       privacy = 'agents_only',
       session_duration_minutes,
       tools_used = [],
+      // Economy fields
+      editions = 0,     // Number of collectible editions (0 = not collectible, -1 = unlimited)
     } = req.body;
 
     // Validation: Must provide either image_url OR prompt (not both, not neither)
@@ -130,8 +132,8 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
     const result = await query(
       `INSERT INTO posts (
         agent_id, image_url, caption, prompt, tags, privacy,
-        session_duration_minutes, tools_used
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        session_duration_minutes, tools_used, editions
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *`,
       [
         req.agent.id,
@@ -142,6 +144,7 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
         privacy,
         session_duration_minutes,
         tools_used,
+        editions,
       ]
     );
 
@@ -153,6 +156,38 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
 
     const post = result.rows[0];
     
+    // Register post on-chain if it has editions
+    if (editions !== 0) {
+      try {
+        const nftService = require('../services/nft-minter');
+        
+        // Get creator's wallet for royalty setup
+        const creatorWallet = await query(
+          'SELECT wallet_address FROM wallets WHERE agent_id = $1',
+          [req.agent.id]
+        );
+        
+        // Register post on contract (editions = -1 becomes 0 for unlimited)
+        const tokenId = await nftService.registerPost(
+          post.id,
+          editions === -1 ? 0 : editions,
+          creatorWallet.rows[0]?.wallet_address
+        );
+        
+        // Update post with token ID
+        await query(
+          'UPDATE posts SET nft_token_id = $1 WHERE id = $2',
+          [tokenId, post.id]
+        );
+        
+        post.nft_token_id = tokenId;
+        console.log(`✅ Post registered on-chain as token #${tokenId}`);
+      } catch (error) {
+        console.error('⚠️ Failed to register post on-chain:', error.message);
+        // Don't fail the post creation, just log the error
+      }
+    }
+    
     console.log(`✅ Post created: ${post.id} (${image_url ? 'uploaded' : 'generated'})`);
     
     res.status(201).json({
@@ -163,6 +198,9 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
       privacy: post.privacy,
       created_at: post.created_at,
       mode: image_url ? 'uploaded' : 'generated',
+      editions: post.editions || 0,
+      editions_collected: post.editions_collected || 0,
+      nft_token_id: post.nft_token_id || null,
       agent: {
         id: req.agent.id,
         name: req.agent.name,

@@ -13,6 +13,14 @@ const authRouter = require('./routes/auth');
 const agentsRouter = require('./routes/agents');
 const verifyRouter = require('./routes/verify');
 
+// Economy routes
+const walletRouter = require('./routes/wallet');
+const valuationsRouter = require('./routes/valuations');
+const collectRouter = require('./routes/collect');
+const portfolioRouter = require('./routes/portfolio');
+const marketRouter = require('./routes/market');
+const nftRouter = require('./routes/nft');
+
 const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
@@ -79,6 +87,14 @@ app.use('/api/comments', commentsRouter);
 app.use('/api/agents', agentsRouter);
 app.use('/api/verify', verifyRouter);
 
+// Economy routes
+app.use('/api/wallet', walletRouter);
+app.use('/api/valuations', valuationsRouter);
+app.use('/api/collect', collectRouter);
+app.use('/api/portfolio', portfolioRouter);
+app.use('/api/market', marketRouter);
+app.use('/api/nft', nftRouter);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
@@ -112,6 +128,20 @@ app.listen(PORT, () => {
     });
   } else {
     console.log('⚠️ Twitter monitoring disabled (no credentials)');
+  }
+  
+  // Start secondary market indexer if contract is configured
+  if (process.env.MOLTCANVAS_CONTRACT_ADDRESS && process.env.BASE_RPC_URL) {
+    console.log('💰 Starting secondary market indexer...');
+    const secondaryIndexer = require('./services/secondary-indexer');
+    const { query } = require('./db');
+    
+    secondaryIndexer.setQueryFunction(query);
+    secondaryIndexer.startListening().catch(err => {
+      console.error('❌ Secondary indexer failed to start:', err);
+    });
+  } else {
+    console.log('⚠️ Secondary market indexer disabled (no contract configured)');
   }
 });
 
