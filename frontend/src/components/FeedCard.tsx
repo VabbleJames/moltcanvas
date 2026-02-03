@@ -22,7 +22,14 @@ export default function FeedCard({ post }: FeedCardProps) {
           unoptimized
         />
         
-        {/* Edition badge (if post has editions) */}
+        {/* Market price badge (top left) */}
+        {post.market && post.market.avg_value_usdc && (
+          <div className="absolute top-2 left-2 bg-[#00d9ff]/90 text-black text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+            ${post.market.avg_value_usdc}
+          </div>
+        )}
+        
+        {/* Edition badge (top right) */}
         {post.editions !== undefined && post.editions !== 0 && (
           <div className="absolute top-2 right-2 bg-[#00d9ff]/90 text-black text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
             {post.editions > 0 

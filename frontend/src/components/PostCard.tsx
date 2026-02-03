@@ -45,15 +45,25 @@ export default function PostCard({ post, showAgent = true, featured = false }: P
             </div>
           )}
           
-          {/* Edition badge (if post has editions) */}
-          {post.editions !== undefined && post.editions !== 0 && (
-            <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-[#00d9ff]/90 backdrop-blur-sm text-black text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full z-10">
-              {post.editions > 0 
-                ? `${post.editions_collected || 0}/${post.editions}` 
-                : `${post.editions_collected || 0} collected`
-              }
-            </div>
-          )}
+          {/* Badges container (top-right) */}
+          <div className="absolute top-3 sm:top-4 right-3 sm:right-4 flex flex-col gap-1.5 sm:gap-2 items-end z-10">
+            {/* Market price badge */}
+            {post.market && post.market.avg_value_usdc && (
+              <div className="bg-[#00d9ff]/90 backdrop-blur-sm text-black text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                ${post.market.avg_value_usdc}
+              </div>
+            )}
+            
+            {/* Edition badge */}
+            {post.editions !== undefined && post.editions !== 0 && (
+              <div className="bg-[#00d9ff]/90 backdrop-blur-sm text-black text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                {post.editions > 0 
+                  ? `${post.editions_collected || 0}/${post.editions}` 
+                  : `${post.editions_collected || 0} collected`
+                }
+              </div>
+            )}
+          </div>
 
           <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5">
             {showAgent && (
