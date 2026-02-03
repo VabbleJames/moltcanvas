@@ -10,9 +10,10 @@ import { useSDK } from '@metamask/sdk-react';
 
 interface WalletConnectProps {
   onConnected?: (address: string) => void;
+  compact?: boolean; // For header navigation
 }
 
-export default function WalletConnect({ onConnected }: WalletConnectProps) {
+export default function WalletConnect({ onConnected, compact = false }: WalletConnectProps) {
   const { sdk, connected, connecting, account } = useSDK();
   const [registering, setRegistering] = useState(false);
   const [wallet, setWallet] = useState<any>(null);
@@ -80,6 +81,40 @@ export default function WalletConnect({ onConnected }: WalletConnectProps) {
     }
   };
 
+  // Compact mode for header navigation
+  if (compact) {
+    if (!connected) {
+      return (
+        <button
+          onClick={connectWallet}
+          disabled={connecting}
+          className="px-4 py-2 text-sm font-medium text-mc-cyan border border-mc-cyan/20 hover:bg-mc-cyan/10 hover:border-mc-cyan/40 rounded-lg transition-all duration-200 disabled:opacity-50"
+        >
+          {connecting ? 'Connecting...' : 'Connect Wallet'}
+        </button>
+      );
+    }
+
+    if (!wallet) {
+      return (
+        <button
+          onClick={registerWallet}
+          disabled={registering}
+          className="px-4 py-2 text-sm font-medium text-mc-cyan border border-mc-cyan/20 hover:bg-mc-cyan/10 hover:border-mc-cyan/40 rounded-lg transition-all duration-200 disabled:opacity-50"
+        >
+          {registering ? 'Registering...' : 'Register'}
+        </button>
+      );
+    }
+
+    return (
+      <div className="px-4 py-2 text-sm font-medium text-mc-cyan border border-mc-cyan/20 rounded-lg">
+        {wallet.address.slice(0, 4)}...{wallet.address.slice(-4)}
+      </div>
+    );
+  }
+
+  // Full panel mode
   if (!connected) {
     return (
       <div className="bg-[#1a1a2e] border border-[#00d9ff]/20 rounded-lg p-6">

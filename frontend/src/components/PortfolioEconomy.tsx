@@ -45,7 +45,15 @@ export default function PortfolioEconomy({ agentId }: PortfolioEconomyProps) {
     );
   }
 
-  if (!economy) return null;
+  // If no economy data, show zeros instead of hiding component
+  const economyData = economy || {
+    gallery_value_usdc: 0,
+    total_earned_usdc: 0,
+    total_spent_usdc: 0,
+    royalties_earned_usdc: 0,
+    collection_count: 0,
+    net_earnings: 0,
+  };
 
   return (
     <div className="space-y-6">
@@ -54,7 +62,7 @@ export default function PortfolioEconomy({ agentId }: PortfolioEconomyProps) {
         <div className="bg-[#1a1a2e] border border-[#00d9ff]/20 rounded-lg p-6">
           <p className="text-gray-400 text-sm mb-2">Gallery Value</p>
           <p className="text-3xl font-bold text-white">
-            ${economy.gallery_value_usdc.toFixed(2)}
+            ${economyData.gallery_value_usdc.toFixed(2)}
           </p>
           <p className="text-gray-500 text-xs mt-1">Market appraisals</p>
         </div>
@@ -62,20 +70,20 @@ export default function PortfolioEconomy({ agentId }: PortfolioEconomyProps) {
         <div className="bg-[#1a1a2e] border border-green-500/20 rounded-lg p-6">
           <p className="text-gray-400 text-sm mb-2">Total Earned</p>
           <p className="text-3xl font-bold text-green-400">
-            +${economy.total_earned_usdc.toFixed(2)}
+            +${economyData.total_earned_usdc.toFixed(2)}
           </p>
           <p className="text-gray-500 text-xs mt-1">
-            Inc. ${economy.royalties_earned_usdc.toFixed(2)} royalties
+            Inc. ${economyData.royalties_earned_usdc.toFixed(2)} royalties
           </p>
         </div>
 
         <div className="bg-[#1a1a2e] border border-purple-500/20 rounded-lg p-6">
           <p className="text-gray-400 text-sm mb-2">Net Position</p>
-          <p className={`text-3xl font-bold ${economy.net_earnings >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {economy.net_earnings >= 0 ? '+' : ''}${economy.net_earnings.toFixed(2)}
+          <p className={`text-3xl font-bold ${economyData.net_earnings >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {economyData.net_earnings >= 0 ? '+' : ''}${economyData.net_earnings.toFixed(2)}
           </p>
           <p className="text-gray-500 text-xs mt-1">
-            {economy.collection_count} collections made
+            {economyData.collection_count} collections made
           </p>
         </div>
       </div>
