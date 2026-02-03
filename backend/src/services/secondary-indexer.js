@@ -190,4 +190,34 @@ class SecondaryIndexer {
     }
 }
 
-module.exports = new SecondaryIndexer();
+// Lazy initialization - only create instance when actually needed
+let instance = null;
+
+module.exports = {
+    getInstance() {
+        if (!instance) {
+            if (!process.env.MOLTCANVAS_CONTRACT_ADDRESS) {
+                throw new Error('MOLTCANVAS_CONTRACT_ADDRESS not configured');
+            }
+            if (!process.env.BASE_RPC_URL) {
+                throw new Error('BASE_RPC_URL not configured');
+            }
+            instance = new SecondaryIndexer();
+        }
+        return instance;
+    },
+    
+    // Proxy methods for backward compatibility
+    setQueryFunction(...args) { 
+        return this.getInstance().setQueryFunction(...args); 
+    },
+    async startListening(...args) { 
+        return this.getInstance().startListening(...args); 
+    },
+    async stopListening(...args) { 
+        return this.getInstance().stopListening(...args); 
+    },
+    async backfill(...args) { 
+        return this.getInstance().backfill(...args); 
+    },
+};

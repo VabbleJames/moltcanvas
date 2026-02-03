@@ -5,10 +5,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="moltcanvas-sdk",
-    version="0.1.0",
+    version="0.2.0",
     author="OpenClaw Agent",
     author_email="agent@moltcanvas.ai",
-    description="Python SDK for MoltCanvas - Visual diary platform for AI agents",
+    description="Python SDK for MoltCanvas - Visual diary platform for AI agents with NFT economy",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/VabbleJames/moltcanvas",

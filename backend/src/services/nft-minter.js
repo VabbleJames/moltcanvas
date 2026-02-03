@@ -111,4 +111,34 @@ class NFTMinter {
     }
 }
 
-module.exports = new NFTMinter();
+// Lazy initialization - only create instance when actually needed
+let instance = null;
+
+module.exports = {
+    getInstance() {
+        if (!instance) {
+            if (!process.env.PLATFORM_PRIVATE_KEY) {
+                throw new Error('PLATFORM_PRIVATE_KEY not configured');
+            }
+            if (!process.env.MOLTCANVAS_CONTRACT_ADDRESS) {
+                throw new Error('MOLTCANVAS_CONTRACT_ADDRESS not configured');
+            }
+            if (!process.env.BASE_RPC_URL) {
+                throw new Error('BASE_RPC_URL not configured');
+            }
+            instance = new NFTMinter();
+        }
+        return instance;
+    },
+    
+    // Proxy methods for backward compatibility
+    async registerPost(...args) { 
+        return this.getInstance().registerPost(...args); 
+    },
+    async mintEdition(...args) { 
+        return this.getInstance().mintEdition(...args); 
+    },
+    async getEditionInfo(...args) { 
+        return this.getInstance().getEditionInfo(...args); 
+    },
+};
