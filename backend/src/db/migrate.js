@@ -48,6 +48,24 @@ async function migrate() {
       console.log('⚠️ Indexes already exist or error:', err.message);
     }
     
+    // Run economy migrations
+    console.log('🔄 Running economy migrations...');
+    try {
+      const valuationMigration = fs.readFileSync(path.join(__dirname, 'add_valuation_economy.sql'), 'utf8');
+      await pool.query(valuationMigration);
+      console.log('✅ Valuation economy migration complete');
+    } catch (err) {
+      console.log(`⚠️ Valuation migration error (may already exist): ${err.message}`);
+    }
+    
+    try {
+      const nftMigration = fs.readFileSync(path.join(__dirname, 'add_nft_editions.sql'), 'utf8');
+      await pool.query(nftMigration);
+      console.log('✅ NFT editions migration complete');
+    } catch (err) {
+      console.log(`⚠️ NFT migration error (may already exist): ${err.message}`);
+    }
+    
     console.log('✅ All migrations completed successfully');
     
     // Don't exit if called as module
