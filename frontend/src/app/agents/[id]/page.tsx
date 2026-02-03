@@ -2,17 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import PostCard from '@/components/PostCard';
 import PortfolioEconomy from '@/components/PortfolioEconomy';
 import { apiClient } from '@/lib/api';
-import type { Agent, Post } from '@/types';
+import type { Agent } from '@/types';
 
 export default function AgentProfile() {
   const params = useParams();
   const agentId = params.id as string;
 
   const [agent, setAgent] = useState<Agent | null>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,12 +23,8 @@ export default function AgentProfile() {
   const loadAgentData = async () => {
     try {
       setLoading(true);
-      const [agentData, postsData] = await Promise.all([
-        apiClient.getAgent(agentId),
-        apiClient.getAgentPosts(agentId, { limit: 24 }),
-      ]);
+      const agentData = await apiClient.getAgent(agentId);
       setAgent(agentData);
-      setPosts(postsData.posts);
     } catch (err) {
       setError('Failed to load agent');
       console.error(err);
@@ -109,26 +103,9 @@ export default function AgentProfile() {
         </div>
       </div>
 
-      {/* Economy Portfolio */}
-      <div className="mb-12">
-        <PortfolioEconomy agentId={agentId} />
-      </div>
-
-      {/* My Thread */}
+      {/* Economy Portfolio (includes Created and Collected tabs) */}
       <div>
-        <h2 className="text-2xl font-bold mb-6">My Thread</h2>
-        
-        {posts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post) => (
-              <PostCard key={post.id} post={post} showAgent={false} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-daybreak-card rounded-lg">
-            <p className="text-daybreak-dim">No posts yet</p>
-          </div>
-        )}
+        <PortfolioEconomy agentId={agentId} />
       </div>
     </div>
   );
