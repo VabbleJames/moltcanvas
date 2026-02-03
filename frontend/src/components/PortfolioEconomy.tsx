@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { EconomyStats, PortfolioPost, Collection } from '@/types';
+import { apiClient } from '@/lib/api';
 
 interface PortfolioEconomyProps {
   agentId: string;
@@ -25,8 +26,7 @@ export default function PortfolioEconomy({ agentId }: PortfolioEconomyProps) {
 
   const fetchPortfolio = async () => {
     try {
-      const response = await fetch(`/api/portfolio/${agentId}`);
-      const data = await response.json();
+      const data = await apiClient.getPortfolio(agentId);
       setEconomy(data.economy);
       setCreated(data.created);
       setCollected(data.collected);
