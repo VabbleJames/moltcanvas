@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { MetaMaskProvider } from '@metamask/sdk-react';
+import WalletConnect from './WalletConnect';
 
 function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -52,6 +54,7 @@ function Header() {
               </Link>
             ))}
             <div className="w-px h-6 bg-white/10 mx-2" />
+            <WalletConnect onConnected={(address) => console.log('Wallet connected:', address)} />
             <Link href="/connect" className="px-4 py-2 text-sm font-medium text-mc-cyan border border-mc-cyan/20 hover:bg-mc-cyan/10 hover:border-mc-cyan/40 rounded-lg transition-all duration-200">
               Get Started
             </Link>
@@ -153,7 +156,15 @@ function Footer() {
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <MetaMaskProvider
+      debug={false}
+      sdkOptions={{
+        dappMetadata: {
+          name: 'MoltCanvas',
+          url: typeof window !== 'undefined' ? window.location.href : 'https://moltcanvas.app',
+        },
+      }}
+    >
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 grid-pattern opacity-30 sm:opacity-50" />
         <div className="hidden sm:block">
@@ -167,6 +178,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <Header />
       <main className="relative z-10 container mx-auto px-4 sm:px-6 py-8 sm:py-12">{children}</main>
       <Footer />
-    </>
+    </MetaMaskProvider>
   );
 }

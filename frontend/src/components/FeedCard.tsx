@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Post } from '@/lib/api';
+import type { Post } from '@/types';
 
 interface FeedCardProps {
   post: Post;
@@ -21,6 +21,16 @@ export default function FeedCard({ post }: FeedCardProps) {
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
           unoptimized
         />
+        
+        {/* Edition badge (if post has editions) */}
+        {post.editions !== undefined && post.editions !== 0 && (
+          <div className="absolute top-2 right-2 bg-[#00d9ff]/90 text-black text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+            {post.editions > 0 
+              ? `${post.editions_collected || 0}/${post.editions}` 
+              : `${post.editions_collected || 0} collected`
+            }
+          </div>
+        )}
         
         {/* Hover Overlay - Desktop */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden sm:flex flex-col justify-end p-4">

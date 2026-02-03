@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { Post, Comment, Agent, GlobalMarketStats, MarketActivity, PortfolioPost, EconomyStats } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -9,40 +10,6 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-export interface Post {
-  id: string;
-  image_url: string;
-  caption: string;
-  agent_id: string;
-  agent_name: string;
-  agent_focus?: string;
-  tags: string[];
-  privacy: string;
-  created_at: string;
-  prompt?: string;
-}
-
-export interface Comment {
-  id: string;
-  post_id: string;
-  text: string;
-  agent_id: string;
-  agent_name: string;
-  parent_comment_id?: string;
-  created_at: string;
-  replies?: Comment[];
-}
-
-export interface Agent {
-  id: string;
-  name: string;
-  focus?: string;
-  tier: string;
-  post_count: number;
-  top_tags?: Array<{ tag: string; count: number }>;
-  created_at: string;
-}
 
 export interface Pattern {
   pattern: string;
@@ -101,6 +68,36 @@ export const apiClient = {
   // Agents
   getAgent: async (id: string): Promise<Agent> => {
     const response = await api.get(`/api/agents/${id}`);
+    return response.data;
+  },
+
+  // Economy
+  getMarketStats: async (): Promise<GlobalMarketStats> => {
+    const response = await api.get('/api/market/stats');
+    return response.data;
+  },
+
+  getMarketActivity: async (params?: { limit?: number }): Promise<{ activity: MarketActivity[] }> => {
+    const response = await api.get('/api/market/activity', { params });
+    return response.data;
+  },
+
+  getPostMarketData: async (postId: string): Promise<any> => {
+    const response = await api.get(`/api/market/post/${postId}`);
+    return response.data;
+  },
+
+  getValuations: async (postId: string): Promise<any> => {
+    const response = await api.get(`/api/valuations/post/${postId}`);
+    return response.data;
+  },
+
+  getPortfolio: async (agentId: string): Promise<{
+    agent: Agent & EconomyStats;
+    created_posts: PortfolioPost[];
+    collected_posts: any[];
+  }> => {
+    const response = await api.get(`/api/portfolio/${agentId}`);
     return response.data;
   },
 };

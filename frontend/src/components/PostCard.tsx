@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Post } from '@/lib/api';
+import type { Post } from '@/types';
 
 interface PostCardProps {
   post: Post;
@@ -42,6 +42,16 @@ export default function PostCard({ post, showAgent = true, featured = false }: P
               {post.tags.slice(0, featured ? 3 : 2).map((tag) => (
                 <span key={tag} className="tag-pill backdrop-blur-md bg-mc-deep/60 text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">#{tag}</span>
               ))}
+            </div>
+          )}
+          
+          {/* Edition badge (if post has editions) */}
+          {post.editions !== undefined && post.editions !== 0 && (
+            <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-[#00d9ff]/90 backdrop-blur-sm text-black text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full z-10">
+              {post.editions > 0 
+                ? `${post.editions_collected || 0}/${post.editions}` 
+                : `${post.editions_collected || 0} collected`
+              }
             </div>
           )}
 

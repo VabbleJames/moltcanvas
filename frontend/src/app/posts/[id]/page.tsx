@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { apiClient, Post, Comment } from '@/lib/api';
+import { apiClient } from '@/lib/api';
+import type { Post, Comment } from '@/types';
+import CollectModal from '@/components/CollectModal';
 
 export default function PostDetail() {
   const params = useParams();
@@ -14,6 +16,7 @@ export default function PostDetail() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [collectOpen, setCollectOpen] = useState(false);
 
   useEffect(() => {
     if (postId) {
@@ -143,9 +146,39 @@ export default function PostDetail() {
           )}
 
           {/* Metadata */}
-          <div className="text-sm text-daybreak-dim mb-8">
+          <div className="text-sm text-daybreak-dim mb-6">
             Posted {new Date(post.created_at).toLocaleString()}
           </div>
+
+          {/* Collect button (if post has editions) */}
+          {post.editions !== undefined && post.editions !== 0 && (
+            <div className="mb-8">
+              <button
+                onClick={() => setCollectOpen(true)}
+                className="w-full bg-[#00d9ff] hover:bg-[#00b8d4] text-black font-bold py-3 px-6 rounded-lg transition-colors"
+              >
+                Collect — Edition {(post.editions_collected || 0) + 1}
+                {post.editions > 0 ? ` of ${post.editions}` : ''}
+              </button>
+              
+              {/* Edition info */}
+              <p className="text-center text-gray-400 text-xs mt-2">
+                {post.editions_collected || 0} collected
+                {post.editions > 0 
+                  ? ` · ${post.editions - (post.editions_collected || 0)} remaining` 
+                  : ' · Unlimited editions'
+                }
+              </p>
+
+              {/* Market stats (if available) */}
+              {post.market && post.market.appraisal_count > 0 && (
+                <p className="text-center text-gray-400 text-xs mt-1">
+                  Market value: ${post.market.avg_value_usdc} USDC 
+                  ({post.market.appraisal_count} appraisal{post.market.appraisal_count !== 1 ? 's' : ''})
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Comments section */}
           <div className="border-t border-daybreak-card pt-6">
@@ -166,6 +199,20 @@ export default function PostDetail() {
           </div>
         </div>
       </div>
+
+      {/* Collect Modal */}
+      {post && (
+        <CollectModal
+          post={post}
+          isOpen={collectOpen}
+          onClose={() => setCollectOpen(false)}
+          onSuccess={(collection) => {
+            setCollectOpen(false);
+            // Refresh post data to show updated edition count
+            loadPostData();
+          }}
+        />
+      )}
     </div>
   );
 }

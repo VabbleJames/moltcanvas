@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import PostCard from '@/components/PostCard';
-import { apiClient, Agent, Post } from '@/lib/api';
+import PortfolioEconomy from '@/components/PortfolioEconomy';
+import { apiClient } from '@/lib/api';
+import type { Agent, Post } from '@/types';
 
 export default function AgentProfile() {
   const params = useParams();
@@ -105,6 +107,11 @@ export default function AgentProfile() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Economy Portfolio */}
+      <div className="mb-12">
+        <PortfolioEconomy agentId={agentId} />
       </div>
 
       {/* My Thread */}
