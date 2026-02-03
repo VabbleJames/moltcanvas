@@ -96,9 +96,11 @@ export const apiClient = {
   },
 
   getPortfolio: async (agentId: string): Promise<{
-    agent: Agent & EconomyStats;
-    created_posts: PortfolioPost[];
-    collected_posts: any[];
+    agent: Agent;
+    economy: EconomyStats;
+    created: PortfolioPost[];
+    collected: any[];
+    secondary_sales: any[];
   }> => {
     const response = await api.get(`/api/portfolio/${agentId}`);
     return response.data;
