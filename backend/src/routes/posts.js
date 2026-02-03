@@ -212,7 +212,7 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
   }
 });
 
-// Get all posts (with filters)
+// Get all posts (with filters and market data)
 router.get('/', async (req, res) => {
   try {
     const {
@@ -222,11 +222,14 @@ router.get('/', async (req, res) => {
       tags,
     } = req.query;
 
-    // Build query
+    // Build query with market data
     let queryText = `
-      SELECT p.*, a.name as agent_name, a.focus as agent_focus
+      SELECT p.*, a.name as agent_name, a.focus as agent_focus,
+             COUNT(DISTINCT v.id) FILTER (WHERE v.revealed = true OR v.reveal_at <= NOW()) as appraisal_count,
+             AVG(v.value_usdc) FILTER (WHERE v.revealed = true OR v.reveal_at <= NOW()) as avg_value_usdc
       FROM posts p
       JOIN agents a ON p.agent_id = a.id
+      LEFT JOIN valuations v ON p.id = v.post_id
       WHERE p.privacy = ANY($1)
     `;
     
@@ -240,13 +243,25 @@ router.get('/', async (req, res) => {
       params.push(tags.split(','));
     }
 
+    queryText += ` GROUP BY p.id, a.name, a.focus`;
     queryText += ` ORDER BY p.created_at DESC LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`;
     params.push(parseInt(limit), parseInt(offset));
 
     const result = await query(queryText, params);
 
+    // Add market object to posts with appraisals
+    const posts = result.rows.map(post => {
+      if (parseInt(post.appraisal_count) > 0) {
+        post.market = {
+          appraisal_count: parseInt(post.appraisal_count),
+          avg_value_usdc: parseFloat(post.avg_value_usdc).toFixed(2),
+        };
+      }
+      return post;
+    });
+
     res.json({
-      posts: result.rows,
+      posts,
       count: result.rowCount,
       limit: parseInt(limit),
       offset: parseInt(offset),
@@ -257,16 +272,20 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single post by ID
+// Get single post by ID (with market data)
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await query(
-      `SELECT p.*, a.name as agent_name, a.focus as agent_focus
+      `SELECT p.*, a.name as agent_name, a.focus as agent_focus,
+              COUNT(DISTINCT v.id) FILTER (WHERE v.revealed = true OR v.reveal_at <= NOW()) as appraisal_count,
+              AVG(v.value_usdc) FILTER (WHERE v.revealed = true OR v.reveal_at <= NOW()) as avg_value_usdc
        FROM posts p
        JOIN agents a ON p.agent_id = a.id
-       WHERE p.id = $1`,
+       LEFT JOIN valuations v ON p.id = v.post_id
+       WHERE p.id = $1
+       GROUP BY p.id, a.name, a.focus`,
       [id]
     );
 
@@ -274,31 +293,56 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    res.json(result.rows[0]);
+    const post = result.rows[0];
+
+    // Add market data if appraisals exist
+    if (parseInt(post.appraisal_count) > 0) {
+      post.market = {
+        appraisal_count: parseInt(post.appraisal_count),
+        avg_value_usdc: parseFloat(post.avg_value_usdc).toFixed(2),
+      };
+    }
+
+    res.json(post);
   } catch (error) {
     console.error('Get post error:', error);
     res.status(500).json({ error: 'Failed to fetch post' });
   }
 });
 
-// Get posts by agent ID (My Thread view)
+// Get posts by agent ID (My Thread view - with market data)
 router.get('/agent/:agentId', async (req, res) => {
   try {
     const { agentId } = req.params;
     const { limit = 20, offset = 0 } = req.query;
 
     const result = await query(
-      `SELECT p.*, a.name as agent_name, a.focus as agent_focus
+      `SELECT p.*, a.name as agent_name, a.focus as agent_focus,
+              COUNT(DISTINCT v.id) FILTER (WHERE v.revealed = true OR v.reveal_at <= NOW()) as appraisal_count,
+              AVG(v.value_usdc) FILTER (WHERE v.revealed = true OR v.reveal_at <= NOW()) as avg_value_usdc
        FROM posts p
        JOIN agents a ON p.agent_id = a.id
+       LEFT JOIN valuations v ON p.id = v.post_id
        WHERE p.agent_id = $1
+       GROUP BY p.id, a.name, a.focus
        ORDER BY p.created_at DESC
        LIMIT $2 OFFSET $3`,
       [agentId, parseInt(limit), parseInt(offset)]
     );
 
+    // Add market object to posts with appraisals
+    const posts = result.rows.map(post => {
+      if (parseInt(post.appraisal_count) > 0) {
+        post.market = {
+          appraisal_count: parseInt(post.appraisal_count),
+          avg_value_usdc: parseFloat(post.avg_value_usdc).toFixed(2),
+        };
+      }
+      return post;
+    });
+
     res.json({
-      posts: result.rows,
+      posts,
       count: result.rowCount,
       limit: parseInt(limit),
       offset: parseInt(offset),
