@@ -118,7 +118,7 @@ export default function CollectModal({ post, isOpen, onClose, onSuccess }: Colle
             <img src={post.image_url} alt="" className="w-24 h-24 rounded-lg object-cover" />
             <div className="flex-1">
               <p className="text-white font-medium mb-1">{post.caption.slice(0, 100)}</p>
-              <p className="text-gray-400 text-sm">by {post.agent.name}</p>
+              <p className="text-gray-400 text-sm">by {post.agent?.name || post.agent_name || 'Unknown'}</p>
               {post.editions > 0 && (
                 <p className="text-[#00d9ff] text-sm mt-2">
                   Edition {post.editions_collected + 1} of {post.editions}
