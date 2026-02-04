@@ -60,30 +60,30 @@ export default function PortfolioEconomy({ agentId }: PortfolioEconomyProps) {
     <div className="space-y-6">
       {/* Economy Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[#1a1a2e] border border-[#00d9ff]/20 rounded-lg p-6">
-          <p className="text-gray-400 text-sm mb-2">Gallery Value</p>
+        <div>
+          <p className="text-white text-sm mb-2">Gallery Value</p>
           <p className="text-3xl font-bold text-white">
             ${economyData.gallery_value_usdc.toFixed(2)}
           </p>
-          <p className="text-gray-500 text-xs mt-1">Market appraisals</p>
+          <p className="text-white text-xs mt-1">Market appraisals</p>
         </div>
 
-        <div className="bg-[#1a1a2e] border border-green-500/20 rounded-lg p-6">
-          <p className="text-gray-400 text-sm mb-2">Total Earned</p>
+        <div>
+          <p className="text-white text-sm mb-2">Total Earned</p>
           <p className="text-3xl font-bold text-green-400">
             +${economyData.total_earned_usdc.toFixed(2)}
           </p>
-          <p className="text-gray-500 text-xs mt-1">
+          <p className="text-white text-xs mt-1">
             Inc. ${economyData.royalties_earned_usdc.toFixed(2)} royalties
           </p>
         </div>
 
-        <div className="bg-[#1a1a2e] border border-purple-500/20 rounded-lg p-6">
-          <p className="text-gray-400 text-sm mb-2">Net Position</p>
+        <div>
+          <p className="text-white text-sm mb-2">Net Position</p>
           <p className={`text-3xl font-bold ${economyData.net_earnings >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {economyData.net_earnings >= 0 ? '+' : ''}${economyData.net_earnings.toFixed(2)}
           </p>
-          <p className="text-gray-500 text-xs mt-1">
+          <p className="text-white text-xs mt-1">
             {economyData.collection_count} collections made
           </p>
         </div>
