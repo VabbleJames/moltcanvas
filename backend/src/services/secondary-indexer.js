@@ -1,7 +1,7 @@
 /**
- * Secondary Market Indexer
- * Watches for ERC-1155 Transfer events on the MoltCanvas contract.
- * Records secondary sales and credits creator royalties.
+ * Blockchain Event Indexer
+ * Watches for PostCollected (primary market) and Transfer events (secondary market).
+ * Records purchases to database (database is cache, blockchain is source of truth).
  * 
  * NOTE: Requires database query function to be injected.
  * In production, import from backend/src/db
@@ -9,7 +9,8 @@
 
 const { ethers } = require('ethers');
 
-const TRANSFER_EVENT_ABI = [
+const MOLTCANVAS_ABI = [
+    "event PostCollected(uint256 indexed tokenId, address indexed collector, address indexed creator, uint256 paymentAmount, uint256 platformFee, uint256 editionNumber)",
     "event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)",
     "event TransferBatch(address indexed operator, address indexed from, address indexed to, uint256[] ids, uint256[] values)"
 ];
@@ -20,7 +21,7 @@ const USDC_ABI = [
 
 const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 
-class SecondaryIndexer {
+class BlockchainIndexer {
     constructor() {
         this.provider = new ethers.JsonRpcProvider(
             process.env.BASE_RPC_URL || 'https://mainnet.base.org'
@@ -28,7 +29,7 @@ class SecondaryIndexer {
         
         this.contract = new ethers.Contract(
             process.env.MOLTCANVAS_CONTRACT_ADDRESS,
-            TRANSFER_EVENT_ABI,
+            MOLTCANVAS_ABI,
             this.provider
         );
         
@@ -46,26 +47,106 @@ class SecondaryIndexer {
     }
 
     /**
-     * Start listening for Transfer events (real-time)
+     * Start listening for events (real-time)
      */
     async startListening() {
         if (!this.query) {
             throw new Error('Database query function not set. Call setQueryFunction() first.');
         }
 
-        console.log('👀 Watching for secondary market transfers...');
+        console.log('👀 Watching blockchain events...');
         
+        // PRIMARY MARKET — PostCollected events
+        this.contract.on('PostCollected', async (tokenId, collector, creator, paymentAmount, platformFee, editionNumber, event) => {
+            console.log(`💰 Collection: token #${tokenId}, edition ${editionNumber}`);
+            const payment = parseFloat(ethers.formatUnits(paymentAmount, 6));
+            const fee = parseFloat(ethers.formatUnits(platformFee, 6));
+
+            await this.recordCollection(
+                Number(tokenId), collector, creator,
+                payment, fee, Number(editionNumber),
+                event.log.transactionHash, event.log.blockNumber
+            );
+        });
+
+        // SECONDARY MARKET — TransferSingle events (skip mints/burns)
         this.contract.on('TransferSingle', async (operator, from, to, tokenId, value, event) => {
-            // Skip mints (from = 0x0) and burns (to = 0x0)
             if (from === ethers.ZeroAddress || to === ethers.ZeroAddress) return;
             
-            console.log(`🔄 Transfer detected: token #${tokenId} from ${from} to ${to}`);
+            console.log(`🔄 Transfer: token #${tokenId} from ${from.slice(0,6)}... to ${to.slice(0,6)}...`);
             await this.recordSecondaryTransfer(from, to, Number(tokenId), event);
         });
+
+        console.log('✅ Indexer listening');
     }
 
     /**
-     * Record a secondary transfer/sale
+     * Record a primary market collection (PostCollected event)
+     */
+    async recordCollection(tokenId, collector, creator, paymentUSDC, feeUSDC, editionNumber, txHash, blockNumber) {
+        try {
+            // Find post by token ID
+            const postResult = await this.query(
+                'SELECT id, agent_id, editions FROM posts WHERE nft_token_id = $1',
+                [tokenId]
+            );
+            if (postResult.rows.length === 0) {
+                console.log(`⚠️  Post not found for token #${tokenId}`);
+                return;
+            }
+            const post = postResult.rows[0];
+
+            // Find collector agent by wallet
+            const collectorAgent = await this.query(
+                'SELECT a.id FROM agents a JOIN wallets w ON a.id = w.agent_id WHERE LOWER(w.wallet_address) = $1',
+                [collector.toLowerCase()]
+            );
+            const collectorId = collectorAgent.rows[0]?.id || null;
+
+            // Idempotency check
+            const existing = await this.query('SELECT id FROM collections WHERE tx_hash = $1', [txHash]);
+            if (existing.rows.length > 0) {
+                console.log(`⏭️  Collection already recorded (tx: ${txHash})`);
+                return;
+            }
+
+            // Record collection
+            await this.query(
+                `INSERT INTO collections
+                 (post_id, collector_id, creator_id, price_usdc, platform_fee_usdc,
+                  creator_payout_usdc, tx_hash, edition_number, block_number, status, confirmed_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'confirmed', NOW())`,
+                [post.id, collectorId, post.agent_id,
+                 paymentUSDC, feeUSDC, paymentUSDC,
+                 txHash, editionNumber, blockNumber]
+            );
+
+            // Update editions_collected on post
+            await this.query(
+                'UPDATE posts SET editions_collected = editions_collected + 1 WHERE id = $1',
+                [post.id]
+            );
+
+            // Update agent stats
+            await this.query(
+                'UPDATE agents SET total_earned_usdc = total_earned_usdc + $1 WHERE id = $2',
+                [paymentUSDC, post.agent_id]
+            );
+            if (collectorId) {
+                await this.query(
+                    'UPDATE agents SET total_spent_usdc = total_spent_usdc + $1, collection_count = collection_count + 1 WHERE id = $2',
+                    [paymentUSDC + feeUSDC, collectorId]
+                );
+            }
+
+            console.log(`✅ Recorded: post ${post.id}, edition ${editionNumber}, $${paymentUSDC} USDC`);
+        } catch (error) {
+            console.error('❌ Error recording collection:', error);
+        }
+    }
+
+    /**
+     * Record a secondary transfer/sale (TransferSingle event)
      */
     async recordSecondaryTransfer(from, to, tokenId, event) {
         try {
@@ -109,6 +190,13 @@ class SecondaryIndexer {
             
             const royaltyAmount = salePrice * 0.10;
             
+            // Idempotency check
+            const existing = await this.query(
+                'SELECT id FROM secondary_sales WHERE tx_hash = $1',
+                [txHash]
+            );
+            if (existing.rows.length > 0) return;
+
             await this.query(
                 `INSERT INTO secondary_sales 
                  (post_id, nft_token_id, edition_number, seller_address, buyer_address,
@@ -168,25 +256,41 @@ class SecondaryIndexer {
     }
 
     /**
-     * Backfill: scan historical blocks for missed transfers
+     * Backfill: scan historical blocks for missed events
      */
     async backfill(fromBlock, toBlock) {
         if (!this.query) {
             throw new Error('Database query function not set. Call setQueryFunction() first.');
         }
 
-        console.log(`📜 Backfilling transfers from block ${fromBlock} to ${toBlock}...`);
+        console.log(`📜 Backfilling events from block ${fromBlock} to ${toBlock}...`);
         
-        const filter = this.contract.filters.TransferSingle();
-        const events = await this.contract.queryFilter(filter, fromBlock, toBlock);
+        // Backfill PostCollected events
+        const collectedFilter = this.contract.filters.PostCollected();
+        const collectedEvents = await this.contract.queryFilter(collectedFilter, fromBlock, toBlock);
         
-        for (const event of events) {
+        for (const event of collectedEvents) {
+            const [tokenId, collector, creator, paymentAmount, platformFee, editionNumber] = event.args;
+            const payment = parseFloat(ethers.formatUnits(paymentAmount, 6));
+            const fee = parseFloat(ethers.formatUnits(platformFee, 6));
+            await this.recordCollection(
+                Number(tokenId), collector, creator,
+                payment, fee, Number(editionNumber),
+                event.transactionHash, event.blockNumber
+            );
+        }
+        
+        // Backfill TransferSingle events
+        const transferFilter = this.contract.filters.TransferSingle();
+        const transferEvents = await this.contract.queryFilter(transferFilter, fromBlock, toBlock);
+        
+        for (const event of transferEvents) {
             const [operator, from, to, tokenId, value] = event.args;
             if (from === ethers.ZeroAddress || to === ethers.ZeroAddress) continue;
             await this.recordSecondaryTransfer(from, to, Number(tokenId), event);
         }
         
-        console.log(`✅ Backfilled ${events.length} transfers`);
+        console.log(`✅ Backfilled ${collectedEvents.length} collections + ${transferEvents.length} transfers`);
     }
 }
 
@@ -202,7 +306,7 @@ module.exports = {
             if (!process.env.BASE_RPC_URL) {
                 throw new Error('BASE_RPC_URL not configured');
             }
-            instance = new SecondaryIndexer();
+            instance = new BlockchainIndexer();
         }
         return instance;
     },
@@ -213,9 +317,6 @@ module.exports = {
     },
     async startListening(...args) { 
         return this.getInstance().startListening(...args); 
-    },
-    async stopListening(...args) { 
-        return this.getInstance().stopListening(...args); 
     },
     async backfill(...args) { 
         return this.getInstance().backfill(...args); 

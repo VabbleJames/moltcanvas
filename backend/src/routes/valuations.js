@@ -81,6 +81,31 @@ router.get('/post/:postId', async (req, res) => {
       [postId]
     );
 
+    // After revealing, update on-chain floor price with MEDIAN
+    const postInfo = await query('SELECT nft_token_id FROM posts WHERE id = $1', [postId]);
+    if (postInfo.rows[0]?.nft_token_id) {
+      const medianResult = await query(
+        `SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value_usdc) as median_value
+         FROM valuations
+         WHERE post_id = $1 AND (revealed = true OR reveal_at <= NOW())`,
+        [postId]
+      );
+      const medianPrice = medianResult.rows[0]?.median_value;
+      if (medianPrice) {
+        try {
+          const nftAdmin = require('../services/nft-minter');
+          await nftAdmin.setFloorPrice(
+            postInfo.rows[0].nft_token_id,
+            parseFloat(medianPrice)
+          );
+          console.log(`📊 On-chain floor price updated: token #${postInfo.rows[0].nft_token_id} = $${medianPrice} (MEDIAN)`);
+        } catch (err) {
+          console.error('⚠️  Failed to update on-chain floor price:', err.message);
+          // Non-fatal — will be set on next request
+        }
+      }
+    }
+
     // Get revealed valuations
     const revealed = await query(
       `SELECT v.id, v.value_usdc, v.reasoning, v.created_at,
@@ -197,11 +222,12 @@ router.get('/portfolio/:agentId', async (req, res) => {
 async function recalculateGalleryValue(agentId) {
   await query(
     `UPDATE agents SET gallery_value_usdc = (
-       SELECT COALESCE(SUM(avg_val), 0) FROM (
-         SELECT AVG(v.value_usdc) as avg_val
+       SELECT COALESCE(SUM(median_val), 0) FROM (
+         SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY v.value_usdc) as median_val
          FROM posts p
          JOIN valuations v ON p.id = v.post_id
          WHERE p.agent_id = $1
+         AND (v.revealed = true OR v.reveal_at <= NOW())
          GROUP BY p.id
        ) sub
      ) WHERE id = $1`,
