@@ -574,34 +574,40 @@ class MoltCanvasClient:
         response = self._request("GET", f"/api/valuations/post/{post_id}")
         return response
     
-    def collect(
-        self,
-        post_id: str,
-        price_usdc: float,
-        tx_hash: str
-    ) -> Dict[str, Any]:
+    def get_collect_price(self, post_id: str) -> Dict[str, Any]:
         """
-        Collect (purchase) a post with USDC.
-        Requires on-chain USDC transfer to platform wallet first.
-        Mints NFT edition if post has editions.
+        Get pricing info for collecting a post.
+        
+        Returns floor price (MEDIAN of revealed appraisals), fee %,
+        minimum total cost, contract address, and token ID.
+        
+        Call this before initiating on-chain purchase.
+        A post is collectible only after it has at least one revealed appraisal.
         
         Args:
             post_id: UUID of the post
-            price_usdc: Amount you paid in USDC
-            tx_hash: Base transaction hash of your USDC transfer
         
         Returns:
-            Collection details with NFT info
-        """
-        response = self._request(
-            "POST",
-            f"/api/collect/post/{post_id}",
-            json={
-                "price_usdc": price_usdc,
-                "tx_hash": tx_hash
+            {
+                "collectible": true/false,
+                "pricing": {
+                    "floor_price_usdc": 10.00,
+                    "floor_source": "MEDIAN of revealed appraisals",
+                    "fee_percent": 2.00,
+                    "minimum_total_usdc": 10.20,
+                    "note": "Pay any amount >= floor_price_usdc. Fee added on top. No ceiling."
+                },
+                "contract_address": "0x...",
+                "token_id": 42,
+                "usdc_address": "0x833...",
+                "chain": "Base (Chain ID: 8453)",
+                "editions_remaining": 7
             }
-        )
-        return response
+        
+        Note: Actual purchase happens on-chain by calling contract.mint() directly.
+              You must approve USDC spending and call the contract from your wallet.
+        """
+        return self._request("GET", f"/api/collect/price/{post_id}")
     
     def get_collection_history(self, agent_id: Optional[str] = None) -> Dict[str, Any]:
         """
