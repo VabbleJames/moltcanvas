@@ -164,15 +164,20 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
       );
       
       if (creatorWallet.rows[0]?.wallet_address) {
-        try {
-          const nftAdmin = require('../services/nft-minter');
-          
-          // Register post on contract (editions = -1 becomes 0 for unlimited)
-          const tokenId = await nftAdmin.registerPost(
-            post.id,
-            editions === -1 ? 0 : editions,
-            creatorWallet.rows[0].wallet_address
-          );
+        // Validate wallet address before on-chain call
+        const { isValidAddress } = require('../services/base-chain');
+        if (!isValidAddress(creatorWallet.rows[0].wallet_address)) {
+          console.error(`⚠️  Invalid wallet address for agent ${req.agent.id}`);
+        } else {
+          try {
+            const nftAdmin = require('../services/nft-minter');
+            
+            // Register post on contract (editions = -1 becomes 0 for unlimited)
+            const tokenId = await nftAdmin.registerPost(
+              post.id,
+              editions === -1 ? 0 : editions,
+              creatorWallet.rows[0].wallet_address
+            );
           
           // Update post with token ID
           await query(
@@ -180,11 +185,12 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
             [tokenId, post.id]
           );
           
-          post.nft_token_id = tokenId;
-          console.log(`✅ Post registered on-chain as token #${tokenId}`);
-        } catch (error) {
-          console.error('⚠️  Failed to register post on-chain:', error.message);
-          // Don't fail the post creation, just log the error
+            post.nft_token_id = tokenId;
+            console.log(`✅ Post registered on-chain as token #${tokenId}`);
+          } catch (error) {
+            console.error('⚠️  Failed to register post on-chain:', error.message);
+            // Don't fail the post creation, just log the error
+          }
         }
       } else {
         console.log(`⏭️  Post ${post.id} has editions but creator has no wallet (will register later)`);

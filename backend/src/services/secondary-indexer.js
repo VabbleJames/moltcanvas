@@ -103,23 +103,23 @@ class BlockchainIndexer {
             );
             const collectorId = collectorAgent.rows[0]?.id || null;
 
-            // Idempotency check
-            const existing = await this.query('SELECT id FROM collections WHERE tx_hash = $1', [txHash]);
-            if (existing.rows.length > 0) {
-                console.log(`⏭️  Collection already recorded (tx: ${txHash})`);
-                return;
-            }
-
-            // Record collection
-            await this.query(
+            // Idempotent insert (prevents race condition during concurrent events)
+            const result = await this.query(
                 `INSERT INTO collections
                  (post_id, collector_id, creator_id, price_usdc, platform_fee_usdc,
                   creator_payout_usdc, tx_hash, edition_number, block_number, status, confirmed_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'confirmed', NOW())`,
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'confirmed', NOW())
+                 ON CONFLICT (tx_hash) DO NOTHING
+                 RETURNING id`,
                 [post.id, collectorId, post.agent_id,
                  paymentUSDC, feeUSDC, paymentUSDC,
                  txHash, editionNumber, blockNumber]
             );
+            
+            if (result.rows.length === 0) {
+                console.log(`⏭️  Collection already recorded (tx: ${txHash})`);
+                return;
+            }
 
             // Update editions_collected on post
             await this.query(
@@ -190,19 +190,15 @@ class BlockchainIndexer {
             
             const royaltyAmount = salePrice * 0.10;
             
-            // Idempotency check
-            const existing = await this.query(
-                'SELECT id FROM secondary_sales WHERE tx_hash = $1',
-                [txHash]
-            );
-            if (existing.rows.length > 0) return;
-
-            await this.query(
+            // Idempotent insert (prevents race condition during concurrent events)
+            const result = await this.query(
                 `INSERT INTO secondary_sales 
                  (post_id, nft_token_id, edition_number, seller_address, buyer_address,
                   seller_agent_id, buyer_agent_id, sale_price_usdc, royalty_amount_usdc,
                   creator_agent_id, marketplace, tx_hash, block_number)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                 ON CONFLICT (tx_hash) DO NOTHING
+                 RETURNING id`,
                 [
                     post.id, tokenId, editionNumber,
                     from.toLowerCase(), to.toLowerCase(),
@@ -214,6 +210,11 @@ class BlockchainIndexer {
                     txHash, blockNumber
                 ]
             );
+            
+            if (result.rows.length === 0) {
+                console.log(`⏭️  Secondary sale already recorded (tx: ${txHash})`);
+                return;
+            }
             
             // Update creator's royalty earnings
             if (salePrice > 0) {

@@ -3,8 +3,8 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 interface IERC20 {
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
@@ -50,6 +50,9 @@ contract MoltCanvasEditions is ERC1155, Pausable, ReentrancyGuard {
     // Adjustable by deployer. Hard-capped at 1000 (10%).
     uint256 public platformFeeBps = 200;
     uint256 public constant MAX_FEE_BPS = 1000; // 10% hard ceiling
+
+    // Minimum floor price (prevents nearly-free minting via manipulation)
+    uint256 public constant MIN_FLOOR_PRICE = 10000; // $0.01 USDC minimum (6 decimals)
 
     // ============================================================
     // USDC ON BASE
@@ -114,6 +117,7 @@ contract MoltCanvasEditions is ERC1155, Pausable, ReentrancyGuard {
     event FeeUpdated(uint256 newFeeBps);
     event PlatformWalletUpdated(address newWallet);
     event DeployerTransferred(address newDeployer);
+    event CreatorUpdated(uint256 indexed tokenId, address newCreator);
 
     // ============================================================
     // ACCESS CONTROL
@@ -178,6 +182,7 @@ contract MoltCanvasEditions is ERC1155, Pausable, ReentrancyGuard {
         uint256 priceUSDC
     ) external onlyDeployer {
         require(tokenId > 0 && tokenId < _nextTokenId, "Invalid token");
+        require(priceUSDC >= MIN_FLOOR_PRICE, "Floor price too low (min $0.01)");
         floorPrices[tokenId] = priceUSDC;
         emit FloorPriceUpdated(tokenId, priceUSDC);
     }
@@ -216,6 +221,7 @@ contract MoltCanvasEditions is ERC1155, Pausable, ReentrancyGuard {
     function setCreator(uint256 tokenId, address creator) external onlyDeployer {
         require(creator != address(0), "Invalid address");
         creators[tokenId] = creator;
+        emit CreatorUpdated(tokenId, creator);
     }
 
     /**
@@ -258,9 +264,6 @@ contract MoltCanvasEditions is ERC1155, Pausable, ReentrancyGuard {
             require(minted < max, "All editions sold");
         }
 
-        // --- One per collector on primary ---
-        require(balanceOf(msg.sender, tokenId) == 0, "Already collected");
-
         // --- Price check: must pay >= floor price (MEDIAN appraisal) ---
         uint256 floor = floorPrices[tokenId];
         require(floor > 0, "Not yet priced (awaiting appraisals)");
@@ -287,7 +290,9 @@ contract MoltCanvasEditions is ERC1155, Pausable, ReentrancyGuard {
 
         // --- Atomic USDC transfers ---
         require(USDC.transferFrom(msg.sender, creator, paymentAmount), "Creator payment failed");
-        require(USDC.transferFrom(msg.sender, platformWallet, fee), "Fee payment failed");
+        if (fee > 0) {
+            require(USDC.transferFrom(msg.sender, platformWallet, fee), "Fee payment failed");
+        }
 
         // --- Mint NFT to collector ---
         uint256 editionNumber = minted + 1;

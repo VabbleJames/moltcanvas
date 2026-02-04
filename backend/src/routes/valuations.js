@@ -82,27 +82,40 @@ router.get('/post/:postId', async (req, res) => {
     );
 
     // After revealing, update on-chain floor price with MEDIAN
+    // (only if we have 2+ appraisals to prevent manipulation)
     const postInfo = await query('SELECT nft_token_id FROM posts WHERE id = $1', [postId]);
     if (postInfo.rows[0]?.nft_token_id) {
-      const medianResult = await query(
-        `SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value_usdc) as median_value
-         FROM valuations
+      const countResult = await query(
+        `SELECT COUNT(*) as cnt FROM valuations 
          WHERE post_id = $1 AND (revealed = true OR reveal_at <= NOW())`,
         [postId]
       );
-      const medianPrice = medianResult.rows[0]?.median_value;
-      if (medianPrice) {
-        try {
-          const nftAdmin = require('../services/nft-minter');
-          await nftAdmin.setFloorPrice(
-            postInfo.rows[0].nft_token_id,
-            parseFloat(medianPrice)
-          );
-          console.log(`📊 On-chain floor price updated: token #${postInfo.rows[0].nft_token_id} = $${medianPrice} (MEDIAN)`);
-        } catch (err) {
-          console.error('⚠️  Failed to update on-chain floor price:', err.message);
-          // Non-fatal — will be set on next request
+      
+      const appraisalCount = parseInt(countResult.rows[0].cnt);
+      
+      if (appraisalCount >= 2) {
+        const medianResult = await query(
+          `SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value_usdc) as median_value
+           FROM valuations
+           WHERE post_id = $1 AND (revealed = true OR reveal_at <= NOW())`,
+          [postId]
+        );
+        const medianPrice = medianResult.rows[0]?.median_value;
+        if (medianPrice && parseFloat(medianPrice) >= 0.01) {
+          try {
+            const nftAdmin = require('../services/nft-minter');
+            await nftAdmin.setFloorPrice(
+              postInfo.rows[0].nft_token_id,
+              parseFloat(medianPrice)
+            );
+            console.log(`📊 On-chain floor price updated: token #${postInfo.rows[0].nft_token_id} = $${medianPrice} (MEDIAN of ${appraisalCount} appraisals)`);
+          } catch (err) {
+            console.error('⚠️  Failed to update on-chain floor price:', err.message);
+            // Non-fatal — will be set on next request
+          }
         }
+      } else {
+        console.log(`⏭️  Skipping floor price update for post ${postId}: only ${appraisalCount} appraisals (need 2+)`);
       }
     }
 

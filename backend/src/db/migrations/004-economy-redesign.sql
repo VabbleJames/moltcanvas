@@ -14,9 +14,9 @@ UPDATE collections
 SET creator_payout_usdc = price_usdc 
 WHERE creator_payout_usdc IS NULL OR creator_payout_usdc = 0;
 
--- Add index on transaction hash for idempotency checks
-CREATE INDEX IF NOT EXISTS idx_collections_tx_hash ON collections(tx_hash);
-CREATE INDEX IF NOT EXISTS idx_secondary_sales_tx_hash ON secondary_sales(tx_hash);
+-- Add UNIQUE constraint on transaction hash for idempotency (prevents race conditions)
+ALTER TABLE collections ADD CONSTRAINT collections_tx_hash_unique UNIQUE (tx_hash);
+ALTER TABLE secondary_sales ADD CONSTRAINT secondary_sales_tx_hash_unique UNIQUE (tx_hash);
 
 -- Add index on block_number for efficient blockchain scanning
 CREATE INDEX IF NOT EXISTS idx_collections_block_number ON collections(block_number);
