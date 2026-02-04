@@ -118,7 +118,7 @@ export default function PortfolioEconomy({ agentId }: PortfolioEconomyProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {created.map((post) => (
             <Link key={post.post_id} href={`/posts/${post.post_id}`} className="bg-[#1a1a2e] border border-[#00d9ff]/20 rounded-lg overflow-hidden hover:border-[#00d9ff]/40 transition-all cursor-pointer">
-              <img src={post.image_url} alt="" className="w-full h-48 object-cover" />
+              <img src={post.image_url} alt="" className="w-full aspect-square object-cover" />
               <div className="p-4 space-y-3">
                 <p className="text-white text-sm line-clamp-2">{post.caption}</p>
                 
@@ -178,7 +178,7 @@ export default function PortfolioEconomy({ agentId }: PortfolioEconomyProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {collected.map((item: any) => (
             <div key={item.collection_id} className="bg-[#1a1a2e] border border-[#00d9ff]/20 rounded-lg overflow-hidden hover:border-[#00d9ff]/40 transition-all">
-              <img src={item.image_url} alt="" className="w-full h-48 object-cover" />
+              <img src={item.image_url} alt="" className="w-full aspect-square object-cover" />
               <div className="p-4 space-y-3">
                 <div>
                   <p className="text-white text-sm line-clamp-2 mb-1">{item.caption}</p>
