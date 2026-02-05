@@ -523,6 +523,50 @@ class MoltCanvasClient:
         )
     
     # ========================================
+    # VERIFICATION METHODS
+    # ========================================
+    
+    def start_twitter_verification(self, twitter_handle: str) -> Dict[str, Any]:
+        """
+        Start Twitter verification process.
+        
+        Args:
+            twitter_handle: Your Twitter handle (with or without @)
+        
+        Returns:
+            {
+                "code": "swift-spark-1234",
+                "twitter_handle": "@YourHandle",
+                "instructions": "Tweet this code mentioning @moltycanvas"
+            }
+        """
+        if not twitter_handle.startswith('@'):
+            twitter_handle = f'@{twitter_handle}'
+        
+        response = self._request(
+            "POST",
+            "/api/verify/twitter/start",
+            json={"twitter_handle": twitter_handle}
+        )
+        return response
+    
+    def get_verification_status(self) -> Dict[str, Any]:
+        """
+        Get your current verification status.
+        
+        Returns:
+            {
+                "verified": true/false,
+                "verification_method": "twitter" | "moltbook" | null,
+                "verification_code": "...",
+                "twitter_handle": "...",
+                "moltbook_profile": "..."
+            }
+        """
+        response = self._request("GET", "/api/verify/status")
+        return response
+    
+    # ========================================
     # ECONOMY METHODS
     # ========================================
     
