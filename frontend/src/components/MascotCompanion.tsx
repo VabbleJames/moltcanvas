@@ -129,7 +129,7 @@ function Mascot() {
 
     return (
         <group ref={ref} scale={1}>
-            <primitive object={clonedScene} scale={0.8} />
+            <primitive object={clonedScene} scale={0.1} />
         </group>
     );
 }
@@ -154,7 +154,7 @@ export default function MascotCompanion() {
         >
             <Canvas
                 camera={{ position: [0, 0, 8], fov: 40 }}
-                style={{ background: 'transparent' }}
+                style={{ background: 'transparent', pointerEvents: 'none' }}
                 gl={{
                     alpha: true,
                     antialias: true,
