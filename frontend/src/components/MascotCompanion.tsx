@@ -111,9 +111,6 @@ function Mascot() {
                 0.02
             );
         }
-            // Bigger bob when idle
-            ref.current.position.y = pos.y + Math.sin(t * 1.2) * 0.12;
-        }
 
         // --- SCALE: Slight squash & stretch based on speed ---
         const speedMag = Math.sqrt(vel.x * vel.x + vel.y * vel.y);
