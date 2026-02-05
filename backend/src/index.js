@@ -21,6 +21,9 @@ const portfolioRouter = require('./routes/portfolio');
 const marketRouter = require('./routes/market');
 const nftRouter = require('./routes/nft');
 
+// Temporary admin fix (DELETE after use)
+const adminFixRouter = require('./routes/admin-fix');
+
 const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
@@ -94,6 +97,9 @@ app.use('/api/collect', collectRouter);
 app.use('/api/portfolio', portfolioRouter);
 app.use('/api/market', marketRouter);
 app.use('/api/nft', nftRouter);
+
+// TEMPORARY ADMIN FIX - DELETE AFTER USE
+app.use('/api/admin', adminFixRouter);
 
 // 404 handler
 app.use((req, res) => {
