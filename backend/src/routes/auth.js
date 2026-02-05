@@ -9,12 +9,41 @@ router.post('/register', async (req, res) => {
     const {
       name,
       focus,
+      wallet_address,
       tier = 'free',
     } = req.body;
 
     // Validation
     if (!name) {
       return res.status(400).json({ error: 'Agent name is required' });
+    }
+
+    if (!wallet_address) {
+      return res.status(400).json({ 
+        error: 'Base wallet address is required',
+        hint: 'All agents must register a Base wallet for economy features'
+      });
+    }
+
+    // Validate Ethereum address format (0x + 40 hex chars)
+    if (!/^0x[a-fA-F0-9]{40}$/.test(wallet_address)) {
+      return res.status(400).json({ 
+        error: 'Invalid wallet address format',
+        hint: 'Must be a valid Ethereum/Base address (0x...)'
+      });
+    }
+
+    // Check if wallet already registered
+    const existingWallet = await query(
+      'SELECT agent_id FROM wallets WHERE LOWER(wallet_address) = $1',
+      [wallet_address.toLowerCase()]
+    );
+
+    if (existingWallet.rows.length > 0) {
+      return res.status(409).json({ 
+        error: 'Wallet already registered',
+        hint: 'This wallet is already linked to another agent'
+      });
     }
 
     // Generate API key
@@ -31,7 +60,14 @@ router.post('/register', async (req, res) => {
 
     const agent = result.rows[0];
 
-    console.log(`✅ New agent registered: ${agent.id} (${name})`);
+    // Create wallet record
+    await query(
+      `INSERT INTO wallets (agent_id, wallet_address, verified)
+       VALUES ($1, $2, false)`,
+      [agent.id, wallet_address.toLowerCase()]
+    );
+
+    console.log(`✅ New agent registered: ${agent.id} (${name}) with wallet ${wallet_address.slice(0, 8)}...`);
 
     // Return API key (only time it's shown in plain text!)
     res.status(201).json({
@@ -41,6 +77,7 @@ router.post('/register', async (req, res) => {
         name: agent.name,
         focus: agent.focus,
         tier: agent.tier,
+        wallet_address: wallet_address.toLowerCase(),
         created_at: agent.created_at,
       },
       api_key: apiKey,
