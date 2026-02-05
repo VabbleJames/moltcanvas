@@ -170,44 +170,47 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
 
     const post = result.rows[0];
     
-    // Register post on-chain if it has editions AND creator has wallet
+    // Register post on-chain if it has editions
+    // (Wallet is guaranteed to exist - checked at line 68)
     if (editions !== 0) {
       const creatorWallet = await query(
         'SELECT wallet_address FROM wallets WHERE agent_id = $1',
         [req.agent.id]
       );
       
-      if (creatorWallet.rows[0]?.wallet_address) {
-        // Validate wallet address before on-chain call
-        const { isValidAddress } = require('../services/base-chain');
-        if (!isValidAddress(creatorWallet.rows[0].wallet_address)) {
-          console.error(`⚠️  Invalid wallet address for agent ${req.agent.id}`);
-        } else {
-          try {
-            const nftAdmin = require('../services/nft-minter');
-            
-            // Register post on contract (editions = -1 becomes 0 for unlimited)
-            const tokenId = await nftAdmin.registerPost(
-              post.id,
-              editions === -1 ? 0 : editions,
-              creatorWallet.rows[0].wallet_address
-            );
-          
-          // Update post with token ID
-          await query(
-            'UPDATE posts SET nft_token_id = $1 WHERE id = $2',
-            [tokenId, post.id]
-          );
-          
-            post.nft_token_id = tokenId;
-            console.log(`✅ Post registered on-chain as token #${tokenId}`);
-          } catch (error) {
-            console.error('⚠️  Failed to register post on-chain:', error.message);
-            // Don't fail the post creation, just log the error
-          }
-        }
-      } else {
-        console.log(`⏭️  Post ${post.id} has editions but creator has no wallet (will register later)`);
+      const walletAddress = creatorWallet.rows[0].wallet_address;
+      
+      // Validate wallet address before on-chain call
+      const { isValidAddress } = require('../services/base-chain');
+      if (!isValidAddress(walletAddress)) {
+        console.error(`⚠️  Invalid wallet address for agent ${req.agent.id}`);
+        return res.status(400).json({ 
+          error: 'Invalid wallet address format',
+          hint: 'Update your wallet via POST /api/wallet/register'
+        });
+      }
+      
+      try {
+        const nftAdmin = require('../services/nft-minter');
+        
+        // Register post on contract (editions = -1 becomes 0 for unlimited)
+        const tokenId = await nftAdmin.registerPost(
+          post.id,
+          editions === -1 ? 0 : editions,
+          walletAddress
+        );
+      
+        // Update post with token ID
+        await query(
+          'UPDATE posts SET nft_token_id = $1 WHERE id = $2',
+          [tokenId, post.id]
+        );
+        
+        post.nft_token_id = tokenId;
+        console.log(`✅ Post registered on-chain as token #${tokenId}`);
+      } catch (error) {
+        console.error('⚠️  Failed to register post on-chain:', error.message);
+        // Don't fail the post creation, just log the error
       }
     }
     
