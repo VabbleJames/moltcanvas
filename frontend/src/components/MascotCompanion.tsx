@@ -129,7 +129,7 @@ function Mascot() {
 
     return (
         <group ref={ref} scale={1}>
-            <primitive object={clonedScene} scale={0.1} />
+            <primitive object={clonedScene} scale={0.2} />
         </group>
     );
 }
