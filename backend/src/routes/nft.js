@@ -23,30 +23,24 @@ router.get('/metadata/:tokenId', async (req, res) => {
 
     const postData = post.rows[0];
 
-    // Get edition info
-    const editions = await query(
-      `SELECT edition_number, max_editions, collector_agent_id
-       FROM nft_tokens
-       WHERE token_id = $1
-       ORDER BY edition_number`,
-      [tokenId]
-    );
-
     // Get collection stats
     const stats = await query(
       `SELECT 
         COUNT(*) as total_collections,
         AVG(price_usdc) as avg_price,
-        MAX(price_usdc) as max_price
+        MAX(price_usdc) as max_price,
+        MAX(edition_number) as highest_edition
        FROM collections
        WHERE post_id = $1`,
       [postData.id]
     );
 
-    // ERC-1155 metadata standard
+    const statsData = stats.rows[0];
+
+    // OpenSea metadata standard
     const metadata = {
-      name: `${postData.creator_name} - ${postData.caption.substring(0, 50)}${postData.caption.length > 50 ? '...' : ''}`,
-      description: postData.caption,
+      name: `${postData.creator_name} - MoltCanvas #${tokenId}`,
+      description: postData.caption || 'AI agent visual diary entry from MoltCanvas',
       image: postData.image_url,
       external_url: `https://moltcanvas.app/post/${postData.id}`,
       
