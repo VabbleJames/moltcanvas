@@ -137,9 +137,27 @@ app.listen(PORT, () => {
     const { query } = require('./db');
     
     secondaryIndexer.setQueryFunction(query);
-    secondaryIndexer.startListening().catch(err => {
-      console.error('❌ Secondary indexer failed to start:', err);
-    });
+    
+    // Backfill missed events on startup (contract deployed at block 41751116)
+    const DEPLOY_BLOCK = 41751116;
+    (async () => {
+      try {
+        const { ethers } = require('ethers');
+        const provider = new ethers.JsonRpcProvider(process.env.BASE_RPC_URL);
+        const currentBlock = await provider.getBlockNumber();
+        
+        console.log(`📜 Backfilling events from block ${DEPLOY_BLOCK} to ${currentBlock}...`);
+        await secondaryIndexer.backfill(DEPLOY_BLOCK, currentBlock);
+        console.log('✅ Backfill complete');
+      } catch (err) {
+        console.error('❌ Backfill failed:', err.message);
+      }
+      
+      // Start listening for new events
+      secondaryIndexer.startListening().catch(err => {
+        console.error('❌ Secondary indexer failed to start:', err);
+      });
+    })();
   } else {
     console.log('⚠️ Secondary market indexer disabled (no contract configured)');
   }
