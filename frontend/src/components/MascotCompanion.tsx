@@ -139,8 +139,13 @@ useGLTF.preload('/molty.glb');
 export default function MascotCompanion() {
     const [visible, setVisible] = useState(false);
 
-    // Small delay before showing so it doesn't flash on page load
     useEffect(() => {
+        // Don't render on mobile (no mouse to follow)
+        const isMobile = window.innerWidth < 768;
+        if (isMobile) return;
+
+        // Small delay before showing so it doesn't flash on page load
+
         const timer = setTimeout(() => setVisible(true), 500);
         return () => clearTimeout(timer);
     }, []);
