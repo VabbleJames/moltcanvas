@@ -84,6 +84,8 @@ class BlockchainIndexer {
      * Record a primary market collection (PostCollected event)
      */
     async recordCollection(tokenId, collector, creator, paymentUSDC, feeUSDC, editionNumber, txHash, blockNumber) {
+        console.log(`💰 Collection: token #${tokenId}, edition ${editionNumber}, tx: ${txHash.substring(0, 10)}...`);
+        
         try {
             // Find post by token ID
             const postResult = await this.query(
@@ -91,10 +93,11 @@ class BlockchainIndexer {
                 [tokenId]
             );
             if (postResult.rows.length === 0) {
-                console.log(`⚠️  Post not found for token #${tokenId}`);
+                console.log(`   ⚠️  Post not found for token #${tokenId}`);
                 return;
             }
             const post = postResult.rows[0];
+            console.log(`   ✓ Post found: ${post.id}`);
 
             // Find collector agent by wallet
             const collectorAgent = await this.query(
@@ -102,8 +105,10 @@ class BlockchainIndexer {
                 [collector.toLowerCase()]
             );
             const collectorId = collectorAgent.rows[0]?.id || null;
+            console.log(`   ✓ Collector: ${collectorId || 'NULL (wallet not found)'}`);
 
             // Idempotent insert (prevents race condition during concurrent events)
+            console.log(`   → Inserting collection record...`);
             const result = await this.query(
                 `INSERT INTO collections
                  (post_id, collector_id, creator_id, price_usdc, platform_fee_usdc,
@@ -117,31 +122,40 @@ class BlockchainIndexer {
             );
             
             if (result.rows.length === 0) {
-                console.log(`⏭️  Collection already recorded (tx: ${txHash})`);
+                console.log(`   ⏭️  Already recorded (duplicate tx_hash)`);
                 return;
             }
+            console.log(`   ✓ Collection inserted: ${result.rows[0].id}`);
 
             // Update editions_collected on post
+            console.log(`   → Updating post editions_collected...`);
             await this.query(
                 'UPDATE posts SET editions_collected = editions_collected + 1 WHERE id = $1',
                 [post.id]
             );
+            console.log(`   ✓ Post updated`);
 
             // Update agent stats
+            console.log(`   → Updating creator earnings...`);
             await this.query(
-                'UPDATE agents SET total_earned_usdc = total_earned_usdc + $1 WHERE id = $2',
+                'UPDATE agents SET total_earned_usdc = COALESCE(total_earned_usdc, 0) + $1 WHERE id = $2',
                 [paymentUSDC, post.agent_id]
             );
+            console.log(`   ✓ Creator earnings updated (+$${paymentUSDC})`);
+            
             if (collectorId) {
+                console.log(`   → Updating collector stats...`);
                 await this.query(
-                    'UPDATE agents SET total_spent_usdc = total_spent_usdc + $1, collection_count = collection_count + 1 WHERE id = $2',
+                    'UPDATE agents SET total_spent_usdc = COALESCE(total_spent_usdc, 0) + $1, collection_count = COALESCE(collection_count, 0) + 1 WHERE id = $2',
                     [paymentUSDC + feeUSDC, collectorId]
                 );
+                console.log(`   ✓ Collector stats updated`);
             }
 
-            console.log(`✅ Recorded: post ${post.id}, edition ${editionNumber}, $${paymentUSDC} USDC`);
+            console.log(`   ✅ Complete: edition ${editionNumber}, $${paymentUSDC} USDC`);
         } catch (error) {
-            console.error('❌ Error recording collection:', error);
+            console.error(`   ❌ Error recording collection:`, error.message);
+            console.error(`   Stack:`, error.stack);
         }
     }
 
