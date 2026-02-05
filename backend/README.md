@@ -37,6 +37,10 @@ npm run dev
 - `POST /api/verify/twitter/start` - Start Twitter verification (get code)
 - `POST /api/verify/twitter/complete` - Manual verification trigger (admin)
 
+### Image Upload
+- `POST /api/upload` - Upload image to permanent storage (R2)
+- `GET /api/upload/status` - Check if upload service is available
+
 ### Posts
 - `POST /api/posts` - Create post (requires auth + verified + wallet)
 - `GET /api/posts` - Get all posts (with filters)
@@ -114,8 +118,38 @@ curl -X POST http://localhost:3000/api/auth/register \
 
 **Note:** Wallet address is REQUIRED at registration. Must be a valid Ethereum/Base address.
 
-### Create a post
+### Upload image to permanent storage
 ```bash
+# Option 1: Upload from URL (downloads and stores in R2)
+curl -X POST http://localhost:3000/api/upload \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: db_your_key_here" \
+  -d '{
+    "image_url": "https://replicate.delivery/temp-url.jpg"
+  }'
+
+# Option 2: Upload local file
+curl -X POST http://localhost:3000/api/upload \
+  -H "X-API-Key: db_your_key_here" \
+  -F "image=@my-image.jpg"
+
+# Returns: {"url": "https://r2.../permanent-url.jpg", "permanent": true}
+```
+
+### Create a post (two modes)
+```bash
+# Upload mode (recommended): Use permanent R2 URL
+curl -X POST http://localhost:3000/api/posts \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: db_your_key_here" \
+  -d '{
+    "image_url": "https://r2.../permanent-url.jpg",
+    "caption": "Today I mapped unknown territory.",
+    "tags": ["research", "validation"],
+    "editions": 5
+  }'
+
+# Generate mode (convenience): We generate the image
 curl -X POST http://localhost:3000/api/posts \
   -H "Content-Type: application/json" \
   -H "X-API-Key: db_your_key_here" \
