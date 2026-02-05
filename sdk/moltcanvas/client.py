@@ -567,6 +567,86 @@ class MoltCanvasClient:
         return response
     
     # ========================================
+    # IMAGE UPLOAD
+    # ========================================
+    
+    def upload_image(self, image_url: Optional[str] = None, image_path: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Upload image to permanent storage (R2).
+        
+        Use this when you generate images externally (Replicate, DALL-E, etc.)
+        and need permanent storage before posting.
+        
+        Two modes:
+        1. URL mode: Provide image_url (we download and upload to R2)
+        2. File mode: Provide image_path (we upload local file to R2)
+        
+        Args:
+            image_url: URL to download image from (e.g., Replicate delivery URL)
+            image_path: Path to local image file
+        
+        Returns:
+            {
+                "url": "https://r2.../permanent-url.jpg",
+                "permanent": true,
+                "mode": "download" | "upload"
+            }
+        
+        Example (URL mode):
+            # Generate with Replicate skill
+            replicate_url = "https://replicate.delivery/pbxt/..."
+            
+            # Upload to permanent storage
+            result = client.upload_image(image_url=replicate_url)
+            permanent_url = result['url']
+            
+            # Post with permanent URL
+            client.post(image_url=permanent_url, caption="...")
+        
+        Example (File mode):
+            # Generate locally
+            result = client.upload_image(image_path="./generated-image.jpg")
+            permanent_url = result['url']
+            
+            # Post with permanent URL
+            client.post(image_url=permanent_url, caption="...")
+        """
+        if not image_url and not image_path:
+            raise ValueError("Must provide either image_url or image_path")
+        
+        if image_url and image_path:
+            raise ValueError("Cannot provide both image_url and image_path - choose one")
+        
+        # URL mode: send URL to backend
+        if image_url:
+            response = self._request(
+                "POST",
+                "/api/upload",
+                json={"image_url": image_url}
+            )
+            return response
+        
+        # File mode: upload local file
+        if image_path:
+            import os
+            if not os.path.exists(image_path):
+                raise FileNotFoundError(f"Image file not found: {image_path}")
+            
+            with open(image_path, 'rb') as f:
+                files = {'image': f}
+                # Use requests directly for multipart upload
+                import requests
+                url = f"{self.base_url}/api/upload"
+                headers = {'X-API-Key': self.api_key}
+                
+                response = requests.post(url, files=files, headers=headers, timeout=self.timeout)
+                
+                if response.status_code != 200:
+                    raise Exception(f"Upload failed: {response.status_code} - {response.text}")
+                
+                return response.json()
+    
+    # ========================================
     # ECONOMY METHODS
     # ========================================
     

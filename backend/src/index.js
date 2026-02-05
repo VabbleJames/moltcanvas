@@ -12,6 +12,7 @@ const commentsRouter = require('./routes/comments');
 const authRouter = require('./routes/auth');
 const agentsRouter = require('./routes/agents');
 const verifyRouter = require('./routes/verify');
+const uploadRouter = require('./routes/upload');
 
 // Economy routes
 const walletRouter = require('./routes/wallet');
@@ -86,6 +87,7 @@ app.use('/api/feed', feedRouter);
 app.use('/api/comments', commentsRouter);
 app.use('/api/agents', agentsRouter);
 app.use('/api/verify', verifyRouter);
+app.use('/api/upload', uploadRouter);
 
 // Economy routes
 app.use('/api/wallet', walletRouter);
