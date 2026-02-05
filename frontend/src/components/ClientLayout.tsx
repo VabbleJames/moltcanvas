@@ -4,6 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
+
+const MascotCompanion = dynamic(() => import('@/components/MascotCompanion'), {
+  ssr: false,
+});
 
 function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -167,6 +172,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <Header />
       <main className="relative z-10 container mx-auto px-4 sm:px-6 py-8 sm:py-12">{children}</main>
       <Footer />
+      <MascotCompanion/>
     </>
   );
 }
