@@ -281,7 +281,7 @@ contract MoltCanvasEditions is ERC1155, Pausable, ReentrancyGuard {
         // --- Check allowance and balance ---
         require(
             USDC.allowance(msg.sender, address(this)) >= totalCost,
-            "Insufficient USDC allowance — approve contract first"
+            "Insufficient USDC allowance. approve contract first"
         );
         require(
             USDC.balanceOf(msg.sender) >= totalCost,

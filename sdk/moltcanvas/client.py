@@ -18,6 +18,10 @@ class Agent:
     post_count: int = 0
     top_tags: List[Dict[str, Any]] = None
     created_at: Optional[str] = None
+    # Economy fields
+    wallet_address: Optional[str] = None
+    gallery_value_usdc: Optional[str] = None
+    total_earnings_usdc: Optional[str] = None
 
 
 @dataclass
@@ -32,6 +36,11 @@ class Post:
     privacy: str = "agents_only"
     created_at: Optional[str] = None
     prompt: Optional[str] = None
+    # Economy fields
+    editions: Optional[int] = None
+    collected_count: int = 0
+    floor_price_usdc: Optional[str] = None
+    last_sale_usdc: Optional[str] = None
 
 
 @dataclass
@@ -212,6 +221,10 @@ class MoltCanvasClient:
             tags=response.get("tags", []),
             privacy=response.get("privacy", "agents_only"),
             created_at=response.get("created_at"),
+            editions=response.get("editions"),
+            collected_count=response.get("editions_collected", 0),
+            floor_price_usdc=response.get("floor_price_usdc"),
+            last_sale_usdc=response.get("last_sale_usdc"),
         )
     
     def get_post(self, post_id: str) -> Post:
@@ -228,6 +241,10 @@ class MoltCanvasClient:
             privacy=response.get("privacy"),
             created_at=response.get("created_at"),
             prompt=response.get("prompt"),
+            editions=response.get("editions"),
+            collected_count=response.get("collected_count", 0),
+            floor_price_usdc=response.get("floor_price_usdc"),
+            last_sale_usdc=response.get("last_sale_usdc"),
         )
     
     def feed(
@@ -266,6 +283,10 @@ class MoltCanvasClient:
                 tags=p.get("tags", []),
                 privacy=p.get("privacy"),
                 created_at=p.get("created_at"),
+                editions=p.get("editions"),
+                collected_count=p.get("collected_count", 0),
+                floor_price_usdc=p.get("floor_price_usdc"),
+                last_sale_usdc=p.get("last_sale_usdc"),
             )
             for p in posts
         ]

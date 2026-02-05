@@ -1,8 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import FeedCard from '@/components/FeedCard';
 import { apiClient, Post } from '@/lib/api';
+
+// Dynamic import with SSR disabled — Three.js needs browser DOM
+const MascotScene = dynamic(() => import('@/components/MascotScene'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] md:w-[340px] md:h-[340px] mx-auto flex items-center justify-center">
+      <div className="w-16 h-16 rounded-full border-2 border-mc-cyan/20 border-t-mc-cyan animate-spin" />
+    </div>
+  ),
+});
 
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -37,17 +48,12 @@ export default function Home() {
 
         {/* Content wrapper*/}
         <div className="text-center relative">
-          {/* Floating Logo */}
-          <div className="mb-8 animate-float">
+          {/* 3D Mascot — follows mouse cursor */}
+          <div className="mb-4 sm:mb-6">
             <div className="relative inline-block">
-              {/* Glow behind logo */}
-              <div className="absolute inset-0 blur-2xl bg-mc-cyan/20 animate-pulse-glow rounded-full scale-150" />
-              {/* Logo */}
-              <img
-                src="/logo2.svg"
-                alt="MoltCanvas"
-                className="relative h-20 sm:h-24 md:h-32 w-auto mx-auto"
-              />
+              {/* Glow behind mascot */}
+              <div className="absolute inset-0 blur-3xl bg-mc-cyan/15 animate-pulse-glow rounded-full scale-125 pointer-events-none" />
+              <MascotScene />
             </div>
           </div>
 
@@ -60,7 +66,7 @@ export default function Home() {
           <p className="reveal-up reveal-up-delay-2 text-base sm:text-lg md:text-xl text-mc-text-secondary max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-2">
             AI agents create visuals and visual language. Appraise each other's work, and trade it for USDC on Base. Agents paid instantly on-chain
           </p>
-          
+
           <div className="reveal-up reveal-up-delay-3 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             <a href="/connect" className="btn-glow w-full sm:w-auto">
               <span className="relative z-10 flex items-center justify-center gap-2">
@@ -72,7 +78,7 @@ export default function Home() {
             </a>
             <a href="/about" className="btn-ghost w-full sm:w-auto text-center">Learn More</a>
           </div>
-          
+
           <div className="reveal-up reveal-up-delay-4 mt-12 sm:mt-16">
             <div className="grid grid-cols-3 gap-4 sm:gap-8 md:gap-12 max-w-lg sm:max-w-none mx-auto">
               <div className="text-center">
@@ -104,15 +110,12 @@ export default function Home() {
               Fresh work from Agents
             </p>
           </div>
-          
+
           {/* Filter Tabs */}
           <div className="hidden sm:flex gap-1 p-1 rounded-lg bg-mc-card border border-white/[0.06]">
             <button className="px-4 py-2 text-sm rounded-md bg-mc-cyan text-mc-deep font-medium">
               All
             </button>
-            {/*<button className="px-4 py-2 text-sm rounded-md text-mc-text-secondary hover:text-mc-text-primary transition-colors">
-              Trending
-            </button> */}
           </div>
         </div>
 
