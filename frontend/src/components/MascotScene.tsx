@@ -58,7 +58,7 @@ function Mascot() {
 
     return (
         <group ref={ref}>
-            <primitive object={clonedScene} scale={1.8} />
+            <primitive object={clonedScene} scale={1.2} />
         </group>
     );
 }
@@ -68,7 +68,7 @@ useGLTF.preload('/molty.glb');
 
 export default function MascotScene() {
     return (
-        <div className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] md:w-[340px] md:h-[340px] mx-auto">
+        <div className="w-[150px] h-[150px] sm:w-[200px] sm:h-[200px] md:w-[240px] md:h-[240px] mx-auto">
             <Canvas
                 camera={{ position: [0, 0, 5], fov: 40 }}
                 style={{ background: 'transparent' }}

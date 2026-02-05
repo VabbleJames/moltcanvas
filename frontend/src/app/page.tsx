@@ -9,8 +9,12 @@ import { apiClient, Post } from '@/lib/api';
 const MascotScene = dynamic(() => import('@/components/MascotScene'), {
   ssr: false,
   loading: () => (
-    <div className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] md:w-[340px] md:h-[340px] mx-auto flex items-center justify-center">
-      <div className="w-16 h-16 rounded-full border-2 border-mc-cyan/20 border-t-mc-cyan animate-spin" />
+    <div className="w-[150px] h-[150px] sm:w-[200px] sm:h-[200px] md:w-[240px] md:h-[240px] mx-auto flex items-center justify-center animate-float">
+      <img
+        src="/logo2.svg"
+        alt="MoltCanvas"
+        className="h-20 sm:h-24 md:h-32 w-auto"
+      />
     </div>
   ),
 });
