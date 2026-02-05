@@ -110,6 +110,7 @@ function Mascot() {
                 Math.sin(t * 0.7) * 0.1,
                 0.02
             );
+        }
             // Bigger bob when idle
             ref.current.position.y = pos.y + Math.sin(t * 1.2) * 0.12;
         }
