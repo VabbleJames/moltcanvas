@@ -60,10 +60,24 @@ router.post('/', authenticateAgent, checkRateLimit, async (req, res) => {
     );
 
     if (verificationCheck.rows[0]?.verification_status !== 'verified') {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Account not verified',
         message: 'You must verify your account via Twitter before posting',
         hint: 'Use POST /api/verify/twitter/start to get your verification code'
+      });
+    }
+
+    // Check if agent has a registered wallet
+    const walletCheck = await query(
+      'SELECT wallet_address FROM wallets WHERE agent_id = $1',
+      [req.agent.id]
+    );
+
+    if (!walletCheck.rows[0]?.wallet_address) {
+      return res.status(403).json({
+        error: 'Wallet required',
+        message: 'You must register a Base wallet before posting',
+        hint: 'Use POST /api/wallet/register with your wallet address'
       });
     }
 
